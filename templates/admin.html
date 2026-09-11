@@ -1,22 +1,23 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FinxClient - Live Instances Monitor</title>
+  <link rel="icon" type="image/png" href="/static/icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0b0b0f;
-      --card-bg: rgba(19, 19, 26, 0.75);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --accent: #be5aff;
-      --accent-glow: rgba(190, 90, 255, 0.35);
-      --accent-hover: #cf7dff;
-      --text: #f3f3f8;
-      --text-muted: #9494a8;
+      --bg: #080a0f;
+      --card-bg: rgba(13, 17, 26, 0.85);
+      --card-border: rgba(0, 108, 253, 0.2);
+      --accent: #006cfd;
+      --accent-glow: rgba(0, 108, 253, 0.4);
+      --accent-hover: #2b85ff;
+      --text: #f0f3f8;
+      --text-muted: #8a94a6;
       --success: #10b981;
       --success-glow: rgba(16, 185, 129, 0.3);
       --danger: #ef4444;
@@ -34,7 +35,7 @@
     body {
       background-color: var(--bg);
       background-image: 
-        radial-gradient(circle at 15% 15%, rgba(190, 90, 255, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 15% 15%, rgba(0, 108, 253, 0.15) 0%, transparent 50%),
         radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
       background-attachment: fixed;
       color: var(--text);
@@ -60,20 +61,17 @@
     .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
     }
 
-    .brand-logo {
-      width: 44px;
-      height: 44px;
-      background: linear-gradient(135deg, var(--accent), #7928ca);
+    .brand-logo-img {
+      width: 46px;
+      height: 46px;
+      object-fit: contain;
+      background: rgba(10, 14, 24, 0.9);
+      border: 1px solid rgba(0, 108, 253, 0.35);
       border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 22px;
-      color: #fff;
+      padding: 6px;
       box-shadow: 0 0 20px var(--accent-glow);
     }
 
@@ -115,7 +113,7 @@
       50% { opacity: 0.4; transform: scale(0.85); }
     }
 
-    /* Stat Cards (Total Players on left, Online Players right next to it) */
+    /* Stat Cards */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -137,7 +135,7 @@
 
     .stat-card:hover {
       transform: translateY(-2px);
-      border-color: rgba(190, 90, 255, 0.3);
+      border-color: rgba(0, 108, 253, 0.4);
     }
 
     .stat-card-header {
@@ -180,11 +178,11 @@
 
     /* Colors for stats */
     .stat-total .stat-icon {
-      background: rgba(190, 90, 255, 0.15);
+      background: rgba(0, 108, 253, 0.15);
       color: var(--accent);
     }
     .stat-total .stat-val {
-      color: #dfb2ff;
+      color: #99c5ff;
     }
 
     .stat-online .stat-icon {
@@ -213,7 +211,7 @@
 
     .search-input {
       width: 100%;
-      background: rgba(19, 19, 26, 0.8);
+      background: rgba(13, 17, 26, 0.9);
       border: 1px solid var(--card-border);
       border-radius: 10px;
       padding: 12px 16px 12px 42px;
@@ -289,7 +287,7 @@
     }
 
     tr:hover td {
-      background: rgba(190, 90, 255, 0.03);
+      background: rgba(0, 108, 253, 0.03);
     }
 
     /* Player cell */
@@ -339,10 +337,11 @@
     .server-badge {
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(0, 108, 253, 0.15);
+      border: 1px solid rgba(0, 108, 253, 0.3);
       padding: 4px 8px;
       border-radius: 6px;
-      color: #dfb2ff;
+      color: #99c5ff;
       display: inline-block;
     }
 
@@ -390,7 +389,7 @@
 
     .login-btn {
       width: 100%;
-      background: linear-gradient(135deg, var(--accent), #9b30ff);
+      background: linear-gradient(135deg, var(--accent), #0048c2);
       color: #fff;
       border: none;
       padding: 12px;
@@ -399,18 +398,23 @@
       font-size: 14px;
       cursor: pointer;
       margin-top: 10px;
+      box-shadow: 0 4px 15px var(--accent-glow);
     }
 
     .login-input {
       width: 100%;
-      background: rgba(10, 10, 15, 0.8);
-      border: 1px solid rgba(190, 90, 255, 0.3);
+      background: rgba(8, 12, 20, 0.9);
+      border: 1px solid rgba(0, 108, 253, 0.3);
       padding: 12px 16px;
       border-radius: 8px;
       color: #fff;
       font-size: 14px;
       margin-bottom: 14px;
       outline: none;
+    }
+    .login-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px var(--accent-glow);
     }
   </style>
 </head>
@@ -421,7 +425,7 @@
     {% if not authenticated %}
     <!-- ADMIN LOGIN -->
     <div class="login-wrapper">
-      <div class="brand-logo" style="margin: 0 auto 16px;">F</div>
+      <img src="/static/icon.png" class="brand-logo-img" style="margin: 0 auto 16px; display: block;" alt="FinxClient">
       <h2 style="font-size: 20px; margin-bottom: 8px;">Admin Authentication</h2>
       <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 24px;">Enter your admin password to view live instances.</p>
 
@@ -443,7 +447,7 @@
     <!-- Top Bar -->
     <div class="top-bar">
       <div class="brand">
-        <div class="brand-logo">F</div>
+        <img src="/static/icon.png" class="brand-logo-img" alt="FinxClient">
         <div class="brand-title">
           <h1>FinxClient Instance Monitor</h1>
           <p>Real-time player monitoring & instance control</p>
@@ -550,7 +554,7 @@
               <td><span class="key-badge">{{ inst.key }}</span></td>
               <td>
                 {% if inst.has_hwid %}
-                <span style="font-size: 12px; color: #a78bfa;">{{ inst.hwid }}</span>
+                <span style="font-size: 12px; color: #60a5fa;">{{ inst.hwid }}</span>
                 {% else %}
                 <span style="font-size: 12px; color: #fbbf24;">Unlinked</span>
                 {% endif %}
@@ -658,7 +662,7 @@
             : `<span style="color: var(--text-muted); font-size: 13px;">${inst.server}</span>`;
 
           const hwidBadge = inst.has_hwid
-            ? `<span style="font-size: 12px; color: #a78bfa;">${inst.hwid}</span>`
+            ? `<span style="font-size: 12px; color: #60a5fa;">${inst.hwid}</span>`
             : `<span style="font-size: 12px; color: #fbbf24;">Unlinked</span>`;
 
           const revokeBtn = inst.active

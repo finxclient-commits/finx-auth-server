@@ -28,6 +28,7 @@ except ImportError:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(BASE_DIR, "config.json")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
 BASE_JAR_PATH = os.path.join(BASE_DIR, "client", "FinxClient-1.6.2.jar")
 
 config = {
@@ -336,6 +337,8 @@ def create_api_app():
     app.router.add_post("/api/heartbeat", handle_heartbeat)
     app.router.add_post("/api/resethwid", handle_api_resethwid)
     app.router.add_post("/api/verify", handle_verify)
+    if os.path.exists(STATIC_DIR):
+        app.router.add_static("/static", STATIC_DIR)
     return app
 
 # ==========================================
