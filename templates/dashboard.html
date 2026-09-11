@@ -72,8 +72,12 @@
       display: flex;
       flex-direction: column;
       gap: 22px;
+      align-self: flex-start;
+      min-height: calc(100vh - 120px);
     }
-    @media (max-width: 900px) { .sidebar { width: 100%; } }
+    @media (max-width: 900px) {
+      .sidebar { width: 100%; min-height: 0; }
+    }
 
     .sidebar-section { display: flex; flex-direction: column; gap: 4px; }
     .sidebar-heading { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim); margin-bottom: 6px; padding-left: 10px; }
@@ -368,7 +372,9 @@
     .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
     .footer-links a:hover { color: #fff; }
     .payment-icons { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
-    .pay-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #151c2a; border: 1px solid #232f45; color: #a5b4c7; }
+    .pay-logo { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #151c2a; border: 1px solid #232f45; color: #a5b4c7; }
+    .paypal-logo { color: #4aa3df; font-style: italic; }
+    .litecoin-logo { color: #b7bbc4; }
     .footer-bottom { border-top: 1px solid #111724; padding-top: 24px; display: flex; justify-content: space-between; color: #4b586d; font-size: 12px; }
   </style>
 </head>
@@ -385,7 +391,6 @@
       <a href="/" class="nav-link">Home</a>
       <a href="/modules" class="nav-link">Modules</a>
       <a href="/pricing" class="nav-link">Pricing</a>
-      <a href="/dashboard?tab=reviews" class="nav-link">Reviews</a>
     </div>
 
     <div class="nav-right">
@@ -414,14 +419,8 @@
 
       <div class="sidebar-section">
         <div class="sidebar-heading">Community</div>
-        <button class="nav-item" onclick="switchTab('reviews')">
-          <span class="nav-icon">&#128172;</span> Reviews
-        </button>
         <button class="nav-item" onclick="switchTab('basefinds')">
           <span class="nav-icon">&#129517;</span> BaseFinds
-        </button>
-        <button class="nav-item" onclick="switchTab('suggestions')">
-          <span class="nav-icon">&#128161;</span> Suggestions
         </button>
       </div>
 
@@ -602,51 +601,7 @@
       </div>
 
       <!-- ============================================== -->
-      <!-- TAB 4: REVIEWS -->
-      <!-- ============================================== -->
-      <div id="tab-reviews" class="tab-content">
-        <div class="warning-banner">
-          <span>&#9888;&#65039;</span>
-          <div>
-            <strong>Warning:</strong> Reviews are monitored. ANY rule violation = instant license revocation AND permanent ban. No warnings. Banned: selling anything (Finx, configs, accounts, licenses), fakes, advertising, self-promo, "DM me for..." messages, off-topic posts.
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">
-            <span>&#128172;</span> Share Your Experience
-          </div>
-          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Submit a review and let us know what you think about Finx Client.</p>
-
-          <form id="review-form">
-            <div class="form-group">
-              <label>Title (optional)</label>
-              <input type="text" class="form-control" name="title" placeholder="Give your review a title...">
-            </div>
-
-            <div class="form-group">
-              <label>Your Review *</label>
-              <div class="textarea-wrapper">
-                <textarea class="form-control" name="review" id="review-text" maxlength="2000" placeholder="Write your honest review about Finx Client..." required></textarea>
-                <div class="char-count" id="review-char-count">0/2000</div>
-              </div>
-            </div>
-
-            <div class="form-action-bar">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 13px; font-weight: 600;">{{ license.discord_tag or license.discord_id or 'Fynn093' }}</span>
-                <button type="button" class="toggle-anon-btn" id="btn-anon" onclick="toggleAnon()">
-                  <span>&#128065;&#65039;</span> Anonymous
-                </button>
-              </div>
-              <button type="submit" class="btn-submit-action">Submit Review</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- ============================================== -->
-      <!-- TAB 5: BASEFINDS -->
+      <!-- TAB 4: BASEFINDS -->
       <!-- ============================================== -->
       <div id="tab-basefinds" class="tab-content">
         <div class="warning-banner">
@@ -700,28 +655,7 @@
         </div>
       </div>
 
-      <!-- ============================================== -->
-      <!-- TAB 6: SUGGESTIONS -->
-      <!-- ============================================== -->
-      <div id="tab-suggestions" class="tab-content">
-        <div class="card">
-          <div class="card-title">&#128161; Feature Suggestions</div>
-          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Have an idea or bypass concept? Let the development team know.</p>
-
-          <div class="form-group">
-            <label>Module / Feature Idea</label>
-            <input type="text" class="form-control" placeholder="e.g. Auto Totem bypass for strict servers">
-          </div>
-          <div class="form-group">
-            <label>Details</label>
-            <textarea class="form-control" placeholder="Describe how it should work..."></textarea>
-          </div>
-          <button type="button" class="btn-download-main" onclick="alert('Thank you! Suggestion submitted.')">Send Suggestion</button>
-        </div>
-      </div>
-
-      <!-- ============================================== -->
-      <!-- TAB 7: UTILITIES (NO FAQ) -->
+      <!-- TAB 5: UTILITIES (NO FAQ) -->
       <!-- ============================================== -->
       <div id="tab-utilities" class="tab-content">
         <div class="card">
@@ -771,10 +705,8 @@
       <div class="footer-col">
         <h4>Payment Methods</h4>
         <div class="payment-icons">
-          <span class="pay-badge">VISA</span>
-          <span class="pay-badge">MC</span>
-          <span class="pay-badge">&#8383; BTC</span>
-          <span class="pay-badge">Stripe</span>
+          <span class="pay-logo paypal-logo" aria-label="PayPal">PayPal</span>
+          <span class="pay-logo litecoin-logo" aria-label="Litecoin">&#321; LTC</span>
         </div>
       </div>
     </div>
@@ -803,43 +735,11 @@
       switchTab(initialTab);
     }
 
-    // Character counter
-    const reviewInput = document.getElementById('review-text');
-    const reviewCounter = document.getElementById('review-char-count');
-    if (reviewInput && reviewCounter) {
-      reviewInput.addEventListener('input', () => {
-        reviewCounter.innerText = reviewInput.value.length + '/2000';
-      });
-    }
-
     const basefindDesc = document.getElementById('basefind-desc');
     const basefindCounter = document.getElementById('basefind-char-count');
     if (basefindDesc && basefindCounter) {
       basefindDesc.addEventListener('input', () => {
         basefindCounter.innerText = basefindDesc.value.length + '/2000';
-      });
-    }
-
-    // Anonymous toggle
-    let isAnonymous = false;
-    function toggleAnon() {
-      isAnonymous = !isAnonymous;
-      const btn = document.getElementById('btn-anon');
-      if (isAnonymous) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    }
-
-    // Review submit
-    const reviewForm = document.getElementById('review-form');
-    if (reviewForm) {
-      reviewForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        alert('Thank you! Your review has been submitted.');
-        reviewForm.reset();
-        if (reviewCounter) reviewCounter.innerText = '0/2000';
       });
     }
 

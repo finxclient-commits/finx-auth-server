@@ -66,7 +66,9 @@
     .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
     .footer-links a:hover { color: #fff; }
     .payment-icons { display: flex; gap: 12px; align-items: center; margin-top: 4px; }
-    .pay-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #151c2a; border: 1px solid #232f45; color: #a5b4c7; }
+    .pay-logo { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #151c2a; border: 1px solid #232f45; color: #a5b4c7; }
+    .paypal-logo { color: #4aa3df; font-style: italic; }
+    .litecoin-logo { color: #b7bbc4; }
     .footer-bottom { border-top: 1px solid #111724; padding-top: 24px; display: flex; justify-content: space-between; color: #4b586d; font-size: 12px; }
   </style>
 </head>
@@ -159,10 +161,8 @@
       <div class="footer-col">
         <h4>Payment Methods</h4>
         <div class="payment-icons">
-          <span class="pay-badge">VISA</span>
-          <span class="pay-badge">MC</span>
-          <span class="pay-badge">&#8383; BTC</span>
-          <span class="pay-badge">Stripe</span>
+          <span class="pay-logo paypal-logo" aria-label="PayPal">PayPal</span>
+          <span class="pay-logo litecoin-logo" aria-label="Litecoin">&#321; LTC</span>
         </div>
       </div>
     </div>
