@@ -1,10 +1,13 @@
 import asyncio
 import datetime
+import hashlib
+import hmac
 import io
 import json
 import logging
 import os
 import sys
+import time
 import zipfile
 from aiohttp import web
 import discord
@@ -53,6 +56,12 @@ if os.path.exists(CONFIG_PATH):
 
 db = LicenseDB(config.get("database_path", "licenses.db"))
 jinja_env = Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
+
+AUTH_SECRET = os.getenv("AUTH_HMAC_SECRET", "Finx_Sec_Auth_Token_2026_x89f_HmacKey").encode("utf-8")
+
+def generate_auth_token(key: str, hwid: str, ts: int) -> str:
+    payload = f"FINX:{key.strip()}:{hwid.strip()}:{ts}"
+    return hmac.new(AUTH_SECRET, payload.encode("utf-8"), hashlib.sha256).hexdigest()
 
 def is_admin(member):
     if not isinstance(member, discord.Member):
@@ -223,10 +232,16 @@ async def handle_verify(request):
     status_code = 200 if success else (403 if "mismatch" in message.lower() else 401)
 
     logger.info(f"Auth attempt for key {key[:8]}... -> success={success} ({message})")
-    return web.json_response({
+    resp_data = {
         "success": success,
         "message": message
-    }, status=status_code)
+    }
+    if success:
+        ts = int(time.time())
+        resp_data["timestamp"] = ts
+        resp_data["token"] = generate_auth_token(key, hwid, ts)
+
+    return web.json_response(resp_data, status=status_code)
 
 # --- HEARTBEAT & ADMIN MONITORING ---
 
@@ -246,7 +261,12 @@ async def handle_heartbeat(request):
 
     success, msg = db.record_heartbeat(key, hwid, ign, server)
     status_code = 200 if success else 403
-    return web.json_response({"success": success, "message": msg}, status=status_code)
+    resp_data = {"success": success, "message": msg}
+    if success and hwid:
+        ts = int(time.time())
+        resp_data["timestamp"] = ts
+        resp_data["token"] = generate_auth_token(key, hwid, ts)
+    return web.json_response(resp_data, status=status_code)
 
 def is_admin_session(request):
     admin_pw = os.getenv("ADMIN_PASSWORD", config.get("admin_password", "finxadmin123"))
