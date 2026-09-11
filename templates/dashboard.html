@@ -231,10 +231,10 @@
     /* Compatible Launchers Grid */
     .launchers-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 16px;
     }
-    @media (max-width: 700px) { .launchers-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .launchers-grid { grid-template-columns: 1fr; } }
     .launcher-box {
       background: #0a0e16;
       border: 1px solid #141b27;
@@ -533,23 +533,38 @@
           <div class="card-title">Compatible Launchers</div>
           <div class="launchers-grid">
             <div class="launcher-box">
-              <div style="font-size: 28px;">&#129704;</div>
+              <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 2px;">
+                <defs>
+                  <linearGradient id="mcFacetTop" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#FFFFFF"/>
+                    <stop offset="100%" stop-color="#E2E8F0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Faceted low-poly crystal rock -->
+                <polygon points="16,5 26,8 24,15 15,14" fill="url(#mcFacetTop)"/>
+                <polygon points="10,11 16,5 15,14 8,16" fill="#E2E8F0"/>
+                <polygon points="15,14 24,15 26,24 16,26 12,22" fill="#F8FAFC"/>
+                <polygon points="8,16 15,14 12,22 6,21" fill="#CBD5E1"/>
+                <polygon points="24,15 29,13 31,22 26,24" fill="#94A3B8"/>
+                <polygon points="6,21 12,22 16,26 26,24 25,31 10,31" fill="#64748B"/>
+                <polygon points="10,31 16,26 25,31" fill="#475569"/>
+              </svg>
               <div class="launcher-name">Minecraft</div>
               <div class="launcher-tag">Official</div>
             </div>
             <div class="launcher-box">
-              <div style="font-size: 28px; color: #10b981;">&#128994;</div>
+              <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 2px;">
+                <defs>
+                  <radialGradient id="modrinthSphere" cx="35%" cy="35%" r="65%">
+                    <stop offset="0%" stop-color="#6ee7b7"/>
+                    <stop offset="40%" stop-color="#10b981"/>
+                    <stop offset="85%" stop-color="#047857"/>
+                    <stop offset="100%" stop-color="#064e3b"/>
+                  </radialGradient>
+                </defs>
+                <circle cx="17" cy="17" r="13" fill="url(#modrinthSphere)"/>
+              </svg>
               <div class="launcher-name">Modrinth</div>
-              <div class="launcher-tag">Compatible</div>
-            </div>
-            <div class="launcher-box">
-              <div style="font-size: 28px; color: #f59e0b;">&#128225;</div>
-              <div class="launcher-name">Dawn</div>
-              <div class="launcher-tag">Compatible</div>
-            </div>
-            <div class="launcher-box">
-              <div style="font-size: 28px;">&#129516;</div>
-              <div class="launcher-name">Prism</div>
               <div class="launcher-tag">Compatible</div>
             </div>
           </div>
@@ -573,7 +588,7 @@
             </div>
             <div>
               <div class="req-col-label">Platforms</div>
-              <div class="req-col-val">Windows, macOS, Linux</div>
+              <div class="req-col-val">Windows</div>
             </div>
           </div>
         </div>
