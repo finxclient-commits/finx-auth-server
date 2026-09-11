@@ -468,28 +468,38 @@ async def cmd_revokekey(interaction: discord.Interaction, key: str):
 # 3. Main Runner
 # ==========================================
 
-async def main():
-    token = config.get("bot_token", "").strip()
-    port = int(config.get("api_port", 3000))
-    host = config.get("api_host", "0.0.0.0")
+async def run_discord(token):
+    while True:
+        try:
+            logger.info("Connecting Discord bot...")
+            await bot.start(token)
+        except Exception as e:
+            logger.error(f"Discord bot disconnected or encountered an error: {e}")
+            logger.info("Retrying Discord connection in 15 seconds...")
+            await asyncio.sleep(15)
 
+async def main():
+    token = os.getenv("BOT_TOKEN", config.get("bot_token", "")).strip()
+    port = int(os.getenv("PORT", os.getenv("API_PORT", config.get("api_port", 3000))))
+    host = os.getenv("API_HOST", config.get("api_host", "0.0.0.0"))
+
+    # 1. Start web server (ALWAYS RUNS)
     app = create_api_app()
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, host, port)
     await site.start()
-    logger.info(f"Auth REST API & Portal listening at http://{host}:{port}/dashboard")
+    logger.info(f"Auth REST API & Portal listening on port {port} (host: {host})")
 
-    if not token or token == "PASTE_YOUR_DISCORD_BOT_TOKEN_HERE":
-        logger.warning("=" * 60)
-        logger.warning("NO DISCORD BOT TOKEN PROVIDED!")
-        logger.warning("Please edit 'config.json' and set 'bot_token' to your Discord bot token.")
-        logger.warning("The REST API and Web Dashboard are running and ready.")
-        logger.warning("=" * 60)
-        while True:
-            await asyncio.sleep(3600)
+    # 2. Start Discord bot as non-fatal background task
+    if token and token != "PASTE_YOUR_DISCORD_BOT_TOKEN_HERE":
+        asyncio.create_task(run_discord(token))
     else:
-        await bot.start(token)
+        logger.warning("No valid Discord BOT_TOKEN provided; web portal is running in standalone mode.")
+
+    # 3. Keep web server running forever
+    stop_event = asyncio.Event()
+    await stop_event.wait()
 
 if __name__ == "__main__":
     try:
