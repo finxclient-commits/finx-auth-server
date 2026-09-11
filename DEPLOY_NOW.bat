@@ -37,11 +37,10 @@ echo    2. Click "New Project" > "Deploy from GitHub repo"
 echo    3. Select "finx-auth-server"
 echo    4. Click "+ New" > "Database" > "PostgreSQL"  
 echo    5. Go to your service > "Variables" and add:
-echo.
-echo    BOT_TOKEN    = MTU0Nzk3MjQ4MDYxMjgzNTQzOQ.GHhPaD.6LEYesyxfRG0dzz4Uzn8ABe-cOkWwHbimr8YD8
+echo    BOT_TOKEN    = (Copy from your config.json)
 echo    CLIENT_ID    = 1547972480612835439
 echo    ADMIN_ROLE_ID = 1482723434931687677
-echo    DASHBOARD_URL = https://YOUR-RAILWAY-URL.up.railway.app/dashboard
+echo    DASHBOARD_URL = https://YOUR-URL.app/dashboard
 echo.
 start https://railway.app/new/github
 

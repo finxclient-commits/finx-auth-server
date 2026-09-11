@@ -1,4 +1,4 @@
-﻿# FinxClient Auth Server — Railway Deployment Guide
+# FinxClient Auth Server — Railway Deployment Guide
 
 ## What you will get
 - Bot + dashboard running 24/7 on Railway's cloud (free tier)
@@ -69,8 +69,7 @@ Sign in with your GitHub account (click "Login with GitHub").
 ## STEP 8: Set environment variables in Railway
 In your Railway project, go to your service → "Variables" tab.
 Add these variables:
-
-  BOT_TOKEN       = MTU0Nzk3MjQ4MDYxMjgzNTQzOQ.GHhPaD.6LEYesyxfRG0dzz4Uzn8ABe-cOkWwHbimr8YD8
+  BOT_TOKEN       = (Copy from your local config.json)
   CLIENT_ID       = 1547972480612835439
   ADMIN_ROLE_ID   = 1482723434931687677
   DASHBOARD_URL   = https://YOUR-RAILWAY-URL.up.railway.app/dashboard
