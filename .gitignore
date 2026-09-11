@@ -1,0 +1,19 @@
+﻿# Secrets and local config
+.env
+config.json
+
+# Database
+*.db
+*.db-journal
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Build artifacts
+*.jar
+
+# OS
+.DS_Store
+Thumbs.db

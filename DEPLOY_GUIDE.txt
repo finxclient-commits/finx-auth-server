@@ -1,0 +1,132 @@
+﻿# FinxClient Auth Server — Railway Deployment Guide
+
+## What you will get
+- Bot + dashboard running 24/7 on Railway's cloud (free tier)
+- A public URL like: https://finxclient-auth.up.railway.app
+- Persistent Postgres database that survives restarts
+
+---
+
+## STEP 1: Install Git
+Download and install Git for Windows:
+https://git-scm.com/download/win
+
+Accept all defaults during installation. Restart your PC after installing.
+
+---
+
+## STEP 2: Create a GitHub account (if you don't have one)
+Go to: https://github.com
+Sign up for a free account.
+
+---
+
+## STEP 3: Create a new GitHub repository
+1. Go to https://github.com/new
+2. Repository name: finx-auth-server
+3. Set it to PRIVATE (important! your bot token is in config.json — but we gitignore it)
+4. Click "Create repository"
+
+---
+
+## STEP 4: Push the auth server code to GitHub
+Open PowerShell or Command Prompt in the finx-auth-server folder:
+  cd "c:\Users\User\Downloads\67ClientSourceByDexter\finx-auth-server"
+
+Then run these commands one by one:
+  git init
+  git add .
+  git commit -m "Initial FinxClient auth server"
+  git branch -M main
+  git remote add origin https://github.com/YOUR_GITHUB_USERNAME/finx-auth-server.git
+  git push -u origin main
+
+Replace YOUR_GITHUB_USERNAME with your actual GitHub username.
+
+---
+
+## STEP 5: Create a Railway account
+Go to: https://railway.app
+Sign in with your GitHub account (click "Login with GitHub").
+
+---
+
+## STEP 6: Create a new Railway project
+1. Click "New Project"
+2. Click "Deploy from GitHub repo"
+3. Select your finx-auth-server repository
+4. Railway will auto-detect Python and start deploying
+
+---
+
+## STEP 7: Add a Postgres database
+1. In your Railway project, click "+ New"
+2. Select "Database" → "PostgreSQL"
+3. Railway will create the DB and automatically set the DATABASE_URL environment variable
+
+---
+
+## STEP 8: Set environment variables in Railway
+In your Railway project, go to your service → "Variables" tab.
+Add these variables:
+
+  BOT_TOKEN       = MTU0Nzk3MjQ4MDYxMjgzNTQzOQ.GHhPaD.6LEYesyxfRG0dzz4Uzn8ABe-cOkWwHbimr8YD8
+  CLIENT_ID       = 1547972480612835439
+  ADMIN_ROLE_ID   = 1482723434931687677
+  DASHBOARD_URL   = https://YOUR-RAILWAY-URL.up.railway.app/dashboard
+
+(You will get the Railway URL in Step 9 — come back and update DASHBOARD_URL after.)
+
+---
+
+## STEP 9: Get your public URL
+1. In Railway, click your service
+2. Go to "Settings" → "Networking" → "Generate Domain"
+3. Railway gives you a URL like: https://finxclient-auth.up.railway.app
+4. Go back to Variables and set DASHBOARD_URL to:
+   https://finxclient-auth.up.railway.app/dashboard
+
+Then click "Redeploy" to apply the change.
+
+---
+
+## STEP 10: Upload the FinxClient JAR to Railway
+The JAR file is too large for git. You need to upload it separately.
+
+Option A: Use the Railway CLI (see https://docs.railway.app/guides/cli)
+Option B: Store the JAR in a free file host like GitHub Releases:
+  1. Go to your GitHub repo → Releases → Draft a new release
+  2. Upload FinxClient-1.6.2.jar as an asset
+  3. In bot.py, download the JAR on startup from the GitHub release URL
+
+For now, the bot will still work for auth. The download button on the dashboard
+will fail until the JAR is accessible. The easiest fix is option B above.
+
+---
+
+## STEP 11: Update the Java client endpoint
+After Railway is live, you need to update the Java client to point to your
+Railway URL instead of localhost.
+
+Edit this file:
+  c:\Users\User\Downloads\67ClientSourceByDexter\67Client SourceByDexter\src\main\java\dev\sixseven\license\LicenseConfig.java
+
+Change:
+  public static final String ENDPOINT = "http://localhost:3000/api/verify";
+
+To:
+  public static final String ENDPOINT = "https://YOUR-RAILWAY-URL.up.railway.app/api/verify";
+
+Then rebuild the JAR:
+  cd "c:\Users\User\Downloads\67ClientSourceByDexter\67Client SourceByDexter"
+  .\gradlew.bat build
+
+Copy the new JAR to finx-auth-server/client/FinxClient-1.6.2.jar
+
+---
+
+## DONE!
+Your bot and dashboard are now running 24/7. Users can:
+1. Get their dashboard link with /dashboard in Discord
+2. Visit the website to see their key and download the pre-activated client
+3. The bot keeps running even when your PC is off
