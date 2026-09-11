@@ -121,11 +121,21 @@ def build_client_jar_with_key(key):
 # 1. REST API & Web Dashboard Handlers
 # ==========================================
 
+discord_status = {"connected": False, "user": None, "last_error": None}
+
 async def handle_status(request):
+    token_val = os.getenv("BOT_TOKEN", config.get("bot_token", "")).strip()
     return web.json_response({
         "status": "online",
         "service": "FinxClient Auth Server & Portal",
-        "version": "1.2.0"
+        "version": "1.2.0",
+        "discord": {
+            "token_configured": bool(token_val and token_val != "PASTE_YOUR_DISCORD_BOT_TOKEN_HERE"),
+            "token_length": len(token_val),
+            "connected": bot.is_ready(),
+            "user": str(bot.user) if bot.user else None,
+            "last_error": discord_status.get("last_error")
+        }
     })
 
 async def handle_dashboard(request):
@@ -469,11 +479,15 @@ async def cmd_revokekey(interaction: discord.Interaction, key: str):
 # ==========================================
 
 async def run_discord(token):
+    global discord_status
     while True:
         try:
             logger.info("Connecting Discord bot...")
+            discord_status["last_error"] = None
             await bot.start(token)
         except Exception as e:
+            discord_status["connected"] = False
+            discord_status["last_error"] = f"{type(e).__name__}: {e}"
             logger.error(f"Discord bot disconnected or encountered an error: {e}")
             logger.info("Retrying Discord connection in 15 seconds...")
             await asyncio.sleep(15)
