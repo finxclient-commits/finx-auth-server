@@ -448,10 +448,30 @@ async def handle_post_basefind(request):
         logger.exception("Failed to post basefind to Discord")
         return web.json_response({"success": False, "message": f"Discord error: {str(e)}"}, status=500)
 
+async def handle_pricing_page(request):
+    try:
+        template = jinja_env.get_template("pricing.html")
+        html = template.render()
+        return web.Response(text=html, content_type="text/html")
+    except Exception as e:
+        logger.error(f"Error rendering pricing.html: {e}")
+        return web.Response(text=f"Template error: {e}", status=500)
+
+async def handle_modules_page(request):
+    try:
+        template = jinja_env.get_template("modules.html")
+        html = template.render()
+        return web.Response(text=html, content_type="text/html")
+    except Exception as e:
+        logger.error(f"Error rendering modules.html: {e}")
+        return web.Response(text=f"Template error: {e}", status=500)
+
 def create_api_app():
     app = web.Application()
     app.router.add_get("/", handle_dashboard)
     app.router.add_get("/dashboard", handle_dashboard)
+    app.router.add_get("/pricing", handle_pricing_page)
+    app.router.add_get("/modules", handle_modules_page)
     app.router.add_get("/basefinds", handle_basefinds_page)
     app.router.add_post("/api/basefinds", handle_post_basefind)
     app.router.add_get("/admin", handle_admin_get)

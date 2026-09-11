@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finx Client — Modules & Detection Status</title>
+  <link rel="icon" type="image/png" href="/static/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070a0f;
+      --card-bg: #0c111a;
+      --card-border: #141b27;
+      --accent-blue: #93b5d8;
+      --text-white: #ffffff;
+      --text-muted: #8392a5;
+      --status-undetected: #10b981;
+      --status-risk: #f59e0b;
+      --status-detected: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background-color: var(--bg); color: var(--text-white); min-height: 100vh; display: flex; flex-direction: column; }
+    .navbar { display: flex; align-items: center; justify-content: space-between; padding: 24px 50px; max-width: 1300px; width: 100%; margin: 0 auto; }
+    .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; }
+    .nav-brand-img { width: 38px; height: 38px; object-fit: contain; border-radius: 8px; }
+    .nav-brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-link { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-link:hover, .nav-link.active { color: #fff; }
+    .btn-dashboard { background: #121824; color: #fff; border: 1px solid #1e283c; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; text-decoration: none; }
+    
+    .hero { text-align: center; padding: 50px 20px 20px; max-width: 900px; margin: 0 auto; }
+    .hero-title { font-size: 48px; font-weight: 800; letter-spacing: -1.2px; margin-bottom: 12px; }
+    .hero-subtitle { font-size: 15px; color: var(--text-muted); margin-bottom: 28px; }
+
+    /* Summary badges */
+    .status-summary { display: flex; justify-content: center; gap: 14px; margin-bottom: 36px; flex-wrap: wrap; }
+    .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 600; }
+    .pill-green { background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); color: var(--status-undetected); }
+    .pill-yellow { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); color: var(--status-risk); }
+    .pill-red { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); color: var(--status-detected); }
+
+    /* Filter buttons */
+    .filter-bar { display: flex; justify-content: center; gap: 8px; margin-bottom: 50px; flex-wrap: wrap; }
+    .filter-btn { background: #101622; border: 1px solid #182234; color: var(--text-muted); padding: 8px 18px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .filter-btn.active, .filter-btn:hover { background: #1c2638; border-color: #2b3b55; color: #fff; }
+
+    /* Module categories & grid */
+    .content-container { max-width: 1100px; width: 100%; margin: 0 auto 80px; padding: 0 24px; }
+    .category-section { margin-bottom: 40px; }
+    .category-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; border-bottom: 1px solid #121926; padding-bottom: 10px; }
+    .category-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+    .category-count { font-size: 13px; color: var(--text-muted); }
+
+    .modules-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 900px) { .modules-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .modules-grid { grid-template-columns: 1fr; } }
+
+    .module-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; transition: border-color 0.2s; }
+    .module-card:hover { border-color: #222d40; }
+    .module-name { font-size: 14px; font-weight: 600; }
+
+    .badge { font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; }
+    .badge-undetected { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); color: var(--status-undetected); }
+    .badge-risk { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); color: var(--status-risk); }
+    .badge-detected { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: var(--status-detected); }
+
+    .footer { margin-top: auto; border-top: 1px solid #111724; padding: 40px 50px 24px; max-width: 1300px; width: 100%; margin: auto auto 0; text-align: center; color: #4b586d; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="nav-brand">
+      <img src="/static/icon.png" class="nav-brand-img" alt="Finx Logo">
+      <span class="nav-brand-name">Finx Client</span>
+    </a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/modules" class="nav-link active">Modules</a>
+      <a href="/pricing" class="nav-link">Pricing</a>
+      <a href="/dashboard?tab=reviews" class="nav-link">Reviews</a>
+    </div>
+    <div class="nav-right">
+      <a href="/dashboard" class="btn-dashboard">Dashboard</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <h1 class="hero-title">All 50+ Modules</h1>
+    <p class="hero-subtitle">Full list of modules and their current detection status.</p>
+
+    <div class="status-summary">
+      <div class="status-pill pill-green">&#128737;&#65039; 48 Undetected</div>
+      <div class="status-pill pill-yellow">&#9888;&#65039; 3 Use at Risk</div>
+      <div class="status-pill pill-red">&#128721; 1 Detected</div>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterCat('all')">&#8862; All Modules</button>
+      <button class="filter-btn" onclick="filterCat('combat')">&#9876;&#65039; Combat</button>
+      <button class="filter-btn" onclick="filterCat('basefinding')">&#129517; BaseFinding</button>
+      <button class="filter-btn" onclick="filterCat('render')">&#128065;&#65039; Render</button>
+      <button class="filter-btn" onclick="filterCat('misc')">&#128295; Misc</button>
+      <button class="filter-btn" onclick="filterCat('client')">&#9881;&#65039; Client</button>
+    </div>
+  </section>
+
+  <div class="content-container">
+    <!-- COMBAT -->
+    <div class="category-section" data-category="combat">
+      <div class="category-header">
+        <span class="category-title">Combat</span>
+        <span class="category-count">21 modules</span>
+      </div>
+      <div class="modules-grid">
+        <div class="module-card"><span class="module-name">Aim Assist</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Anchor Macro</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Auto Crystal</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Auto Double Hand</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Auto Hit Crystal</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Auto Inv Totem</span><span class="badge badge-risk">&#9888; Use at Risk</span></div>
+        <div class="module-card"><span class="module-name">Auto Jump Reset</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Auto Totem</span><span class="badge badge-risk">&#9888; Use at Risk</span></div>
+        <div class="module-card"><span class="module-name">Crystal Optimizer</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Double Anchor</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Elytra Swap</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">HitBox</span><span class="badge badge-detected">&#10005; Detected</span></div>
+        <div class="module-card"><span class="module-name">Hover Totem</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Mace Bomber</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Mace Swap</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">No Hit Delay</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Shield Breaker</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Spear Swap</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Static HitBoxes</span><span class="badge badge-risk">&#9888; Use at Risk</span></div>
+        <div class="module-card"><span class="module-name">Totem Offhand</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">Trigger Bot</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+      </div>
+    </div>
+
+    <!-- BASEFINDING -->
+    <div class="category-section" data-category="basefinding">
+      <div class="category-header">
+        <span class="category-title">BaseFinding</span>
+        <span class="category-count">5 modules</span>
+      </div>
+      <div class="modules-grid">
+        <div class="module-card"><span class="module-name">SuspiciousChunkFinder</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">TuffChunkFinder</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">AutoChunkLoader</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">FutureDebug</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">RadarHud</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+      </div>
+    </div>
+
+    <!-- RENDER -->
+    <div class="category-section" data-category="render">
+      <div class="category-header">
+        <span class="category-title">Render</span>
+        <span class="category-count">8 modules</span>
+      </div>
+      <div class="modules-grid">
+        <div class="module-card"><span class="module-name">SuspiciousChunkRenderer</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">TuffChunkRenderer</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">FutureDebugRenderer</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">WorldNametagRenderer</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">MotionBlur</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">PlayerESP</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">NameTags</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">RegionMapHud</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+      </div>
+    </div>
+
+    <!-- MISC -->
+    <div class="category-section" data-category="misc">
+      <div class="category-header">
+        <span class="category-title">Misc</span>
+        <span class="category-count">5 modules</span>
+      </div>
+      <div class="modules-grid">
+        <div class="module-card"><span class="module-name">AutoChunkLoader</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">WeatherNotifier</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">MusicHUD</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">FakePlayer</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">BlockNotifier</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+      </div>
+    </div>
+
+    <!-- CLIENT -->
+    <div class="category-section" data-category="client">
+      <div class="category-header">
+        <span class="category-title">Client</span>
+        <span class="category-count">6 modules</span>
+      </div>
+      <div class="modules-grid">
+        <div class="module-card"><span class="module-name">DiscordRPC</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">ClickGUI</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">ThemeManager (Blue)</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">NameProtect</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">SkinProtect</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+        <div class="module-card"><span class="module-name">ConfigManager</span><span class="badge badge-undetected">&#10003; Undetected</span></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    Finx Client &copy; 2026 &bull; All rights reserved.
+  </footer>
+
+  <script>
+    function filterCat(cat) {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      document.querySelectorAll('.category-section').forEach(sec => {
+        if (cat === 'all' || sec.getAttribute('data-category') === cat) {
+          sec.style.display = 'block';
+        } else {
+          sec.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

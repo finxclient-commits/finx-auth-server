@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finx Client — Choose Your Plan</title>
+  <link rel="icon" type="image/png" href="/static/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070a0f;
+      --card-bg: #0d121c;
+      --card-border: #161e2e;
+      --accent-blue: #93b5d8;
+      --btn-blue: #93b5d8;
+      --btn-blue-hover: #a8c7e8;
+      --text-white: #ffffff;
+      --text-muted: #8392a5;
+      --red-x: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background-color: var(--bg); color: var(--text-white); min-height: 100vh; display: flex; flex-direction: column; }
+    .navbar { display: flex; align-items: center; justify-content: space-between; padding: 24px 50px; max-width: 1300px; width: 100%; margin: 0 auto; }
+    .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; }
+    .nav-brand-img { width: 38px; height: 38px; object-fit: contain; border-radius: 8px; }
+    .nav-brand-name { font-size: 20px; font-weight: 800; letter-spacing: -0.4px; }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-link { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-link:hover, .nav-link.active { color: #fff; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .btn-dashboard { background: #121824; color: #fff; border: 1px solid #1e283c; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+    .btn-dashboard:hover { background: #192233; border-color: #2e3d5c; }
+    .hero { text-align: center; padding: 60px 20px 20px; max-width: 900px; margin: 0 auto; }
+    .hero-title { font-size: 52px; font-weight: 800; letter-spacing: -1.2px; margin-bottom: 12px; }
+    .hero-subtitle { font-size: 16px; color: var(--text-muted); margin-bottom: 36px; }
+    .toggle-pills { display: inline-flex; background: #0f1420; border: 1px solid #182030; border-radius: 30px; padding: 4px; margin-bottom: 50px; }
+    .pill-btn { padding: 8px 24px; border-radius: 24px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s; }
+    .pill-btn.active { background: #1b2436; color: #fff; }
+    .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; max-width: 840px; width: 100%; margin: 0 auto 90px; padding: 0 20px; }
+    @media (max-width: 768px) { .pricing-grid { grid-template-columns: 1fr; } .navbar { padding: 18px 24px; } .nav-links { display: none; } .hero-title { font-size: 38px; } }
+    .pricing-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 40px 34px; display: flex; flex-direction: column; position: relative; transition: transform 0.2s, border-color 0.2s; }
+    .pricing-card:hover { transform: translateY(-4px); border-color: #243147; }
+    .best-value-badge { position: absolute; top: -14px; right: 32px; background: #1b2638; border: 1px solid #2d3e5c; color: #abc8e8; font-size: 11px; font-weight: 700; padding: 4px 14px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
+    .card-plan-name { font-size: 21px; font-weight: 700; margin-bottom: 18px; }
+    .price-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 30px; }
+    .price-currency { font-size: 22px; font-weight: 600; color: var(--text-muted); }
+    .price-amount { font-size: 48px; font-weight: 800; letter-spacing: -1px; }
+    .price-period { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+    .features-list { list-style: none; display: flex; flex-direction: column; gap: 14px; margin-bottom: 36px; flex-grow: 1; }
+    .feature-item { display: flex; align-items: center; gap: 12px; font-size: 13.5px; color: #cfd8e3; }
+    .feature-item.excluded { color: #637082; }
+    .icon-check { color: #fff; font-weight: 700; font-size: 13px; }
+    .icon-cross { color: var(--red-x); font-weight: 700; font-size: 13px; }
+    .btn-plan { width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; text-decoration: none; text-align: center; transition: all 0.2s; display: inline-block; }
+    .btn-plan-dark { background: #141b29; color: #fff; border: 1px solid #222d42; }
+    .btn-plan-dark:hover { background: #1a2336; border-color: #334463; }
+    .btn-plan-accent { background: var(--btn-blue); color: #080e18; }
+    .btn-plan-accent:hover { background: var(--btn-blue-hover); }
+    .footer { margin-top: auto; border-top: 1px solid #111724; padding: 48px 50px 32px; max-width: 1300px; width: 100%; margin: auto auto 0; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 2fr; gap: 32px; margin-bottom: 40px; }
+    @media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+    .footer-col h4 { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 16px; letter-spacing: -0.2px; }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+    .footer-links a:hover { color: #fff; }
+    .payment-icons { display: flex; gap: 12px; align-items: center; margin-top: 4px; }
+    .pay-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #151c2a; border: 1px solid #232f45; color: #a5b4c7; }
+    .footer-bottom { border-top: 1px solid #111724; padding-top: 24px; display: flex; justify-content: space-between; color: #4b586d; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="nav-brand">
+      <img src="/static/icon.png" class="nav-brand-img" alt="Finx Logo">
+      <span class="nav-brand-name">Finx Client</span>
+    </a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/modules" class="nav-link">Modules</a>
+      <a href="/pricing" class="nav-link active">Pricing</a>
+      <a href="/dashboard?tab=reviews" class="nav-link">Reviews</a>
+    </div>
+    <div class="nav-right">
+      <a href="/dashboard" class="btn-dashboard">Dashboard</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <h1 class="hero-title">Choose your plan</h1>
+    <p class="hero-subtitle">Monthly or lifetime. Pick what works for you.</p>
+    <div class="toggle-pills">
+      <button class="pill-btn active">Finx+</button>
+      <button class="pill-btn">NewGen</button>
+    </div>
+  </section>
+
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="card-plan-name">Finx+ Monthly</div>
+      <div class="price-row">
+        <span class="price-currency">&euro;</span>
+        <span class="price-amount">4.99</span>
+        <span class="price-period">/month</span>
+      </div>
+      <ul class="features-list">
+        <li class="feature-item"><span class="icon-check">&#10003;</span> All 50+ modules</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> OP exploits &amp; bypasses</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> Auto base finding</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> Auto-farm &amp; utility</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> Regular updates</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> Discord support</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> 1 device included</li>
+        <li class="feature-item excluded"><span class="icon-cross">&#10005;</span> No lifetime access</li>
+      </ul>
+      <a href="/dashboard?tab=redeem" class="btn-plan btn-plan-dark">Get Finx+ Monthly</a>
+    </div>
+
+    <div class="pricing-card">
+      <div class="best-value-badge">&#9733; Best Value</div>
+      <div class="card-plan-name">Finx+ Lifetime</div>
+      <div class="price-row">
+        <span class="price-currency">&euro;</span>
+        <span class="price-amount">12.99</span>
+        <span class="price-period">lifetime access</span>
+      </div>
+      <ul class="features-list">
+        <li class="feature-item"><span class="icon-check">&#10003;</span> All 50+ modules</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> OP exploits &amp; bypasses</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> Auto base finding</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> Auto-farm &amp; utility</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> Regular updates</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> Discord support</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> 1 device included</li>
+        <li class="feature-item"><span class="icon-check">&#10003;</span> Lifetime access</li>
+      </ul>
+      <a href="/dashboard?tab=redeem" class="btn-plan btn-plan-accent">Get Finx+ Lifetime</a>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <ul class="footer-links">
+          <li><a href="/">Home</a></li>
+          <li><a href="/modules">Modules</a></li>
+          <li><a href="/dashboard">Dashboard</a></li>
+          <li><a href="/pricing">Pricing</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Socials</h4>
+        <ul class="footer-links">
+          <li><a href="https://discord.gg/" target="_blank">Discord Server</a></li>
+          <li><a href="https://tiktok.com/" target="_blank">TikTok</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Payment Methods</h4>
+        <div class="payment-icons">
+          <span class="pay-badge">VISA</span>
+          <span class="pay-badge">MC</span>
+          <span class="pay-badge">&#8383; BTC</span>
+          <span class="pay-badge">Stripe</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Finx Client &copy; 2026 &bull; All rights reserved.</span>
+    </div>
+  </footer>
+</body>
+</html>

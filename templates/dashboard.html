@@ -3,498 +3,972 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FinxClient - Member Portal</title>
+  <title>Finx Client — Member Portal</title>
   <link rel="icon" type="image/png" href="/static/icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #080a0f;
-      --card-bg: rgba(13, 17, 26, 0.85);
-      --card-border: rgba(0, 108, 253, 0.2);
-      --accent: #006cfd;
-      --accent-glow: rgba(0, 108, 253, 0.4);
-      --accent-hover: #2b85ff;
-      --text: #f0f3f8;
-      --text-muted: #8a94a6;
-      --success: #10b981;
-      --success-glow: rgba(16, 185, 129, 0.25);
-      --danger: #ef4444;
-      --radius: 16px;
+      --bg: #070a0f;
+      --panel-bg: #0b0f17;
+      --card-bg: #0e131d;
+      --card-border: #151c2a;
+      --accent-pill: #93b5d8;
+      --accent-pill-text: #0a111a;
+      --accent-blue: #00A8FC;
+      --accent-glow: rgba(0, 168, 252, 0.35);
+      --text-white: #ffffff;
+      --text-muted: #8291a4;
+      --text-dim: #4e5c70;
+      --red-warn: #ef4444;
+      --warn-bg: rgba(239, 68, 68, 0.08);
+      --warn-border: rgba(239, 68, 68, 0.25);
+      --green: #10b981;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background-color: var(--bg); color: var(--text-white); min-height: 100vh; display: flex; flex-direction: column; }
 
-    body {
-      background-color: var(--bg);
-      background-image: 
-        radial-gradient(circle at 20% 15%, rgba(0, 108, 253, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(0, 72, 194, 0.12) 0%, transparent 50%);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 20px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 820px;
-    }
-
-    /* Header */
-    .header {
+    /* Top Navbar */
+    .navbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 35px;
+      padding: 18px 40px;
+      width: 100%;
+      border-bottom: 1px solid #111724;
+      background: #080c13;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; }
+    .nav-brand-img { width: 34px; height: 34px; object-fit: contain; border-radius: 8px; }
+    .nav-brand-name { font-size: 19px; font-weight: 800; letter-spacing: -0.4px; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-link { color: var(--text-muted); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: color 0.2s; }
+    .nav-link:hover, .nav-link.active { color: #fff; }
+    .nav-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--text-muted); }
+    .btn-dash-pill { background: var(--accent-pill); color: var(--accent-pill-text); padding: 7px 18px; border-radius: 20px; font-size: 12.5px; font-weight: 700; text-decoration: none; }
+
+    /* Layout */
+    .portal-layout {
+      display: flex;
+      max-width: 1340px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 30px 60px;
+      gap: 32px;
+      flex-grow: 1;
+    }
+    @media (max-width: 900px) {
+      .portal-layout { flex-direction: column; padding: 20px 16px; }
+      .navbar { padding: 14px 20px; }
+      .nav-links { display: none; }
     }
 
-    .brand {
+    /* Left Sidebar */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    @media (max-width: 900px) { .sidebar { width: 100%; } }
+
+    .sidebar-section { display: flex; flex-direction: column; gap: 4px; }
+    .sidebar-heading { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim); margin-bottom: 6px; padding-left: 10px; }
+
+    .nav-item {
       display: flex;
       align-items: center;
-      gap: 16px;
-    }
-
-    .brand-logo-img {
-      width: 48px;
-      height: 48px;
-      object-fit: contain;
-      background: rgba(10, 14, 24, 0.9);
-      border: 1px solid rgba(0, 108, 253, 0.35);
+      gap: 12px;
+      padding: 10px 14px;
       border-radius: 12px;
-      padding: 6px;
-      box-shadow: 0 0 20px var(--accent-glow);
-    }
-
-    .brand-text h1 {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-
-    .brand-text p {
-      font-size: 13px;
       color: var(--text-muted);
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: var(--success);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
+      text-decoration: none;
+      font-size: 13.5px;
       font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+    .nav-item:hover { color: #fff; background: rgba(255,255,255,0.03); }
+    .nav-item.active { background: var(--accent-pill); color: var(--accent-pill-text); }
+    .nav-item.active .nav-icon { color: var(--accent-pill-text); }
+    .nav-icon { font-size: 16px; width: 18px; text-align: center; color: var(--text-muted); }
+
+    /* Devices slot */
+    .device-slot-box {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      margin-top: 6px;
+    }
+    .btn-add-slot { color: #fff; text-decoration: none; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+    .btn-add-slot:hover { text-decoration: underline; }
+
+    /* Bottom Profile Card */
+    .profile-card {
+      background: #0d121c;
+      border: 1px solid #161e2e;
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+    }
+    .profile-user-info { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+    .profile-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #222d42; flex-shrink: 0; }
+    .profile-names { display: flex; flex-direction: column; overflow: hidden; }
+    .profile-username { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .profile-badge { font-size: 11px; color: #8bb3e0; white-space: nowrap; }
+    .profile-logout { color: var(--text-muted); text-decoration: none; font-size: 15px; cursor: pointer; padding: 4px; }
+    .profile-logout:hover { color: #fff; }
+
+    /* Main Content Area */
+    .main-panel {
+      flex-grow: 1;
+      min-width: 0;
     }
 
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--success);
-      border-radius: 50%;
-      box-shadow: 0 0 10px var(--success);
-    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Cards */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      backdrop-filter: blur(16px);
-      border-radius: var(--radius);
-      padding: 28px;
+      border-radius: 18px;
+      padding: 26px 30px;
       margin-bottom: 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
     }
+    .card-title { font-size: 18px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
 
-    .card-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 18px;
-      color: var(--text);
+    /* Warning Banner */
+    .warning-banner {
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      color: #fca5a5;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 12.5px;
+      line-height: 1.5;
+      margin-bottom: 22px;
       display: flex;
-      align-items: center;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 10px;
     }
+    .warning-banner strong { color: #ef4444; }
 
-    /* Key Display Box */
-    .key-box {
+    /* Downloads Tab */
+    .hero-download-card {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(8, 12, 20, 0.9);
-      border: 1px solid rgba(0, 108, 253, 0.3);
-      border-radius: 12px;
-      padding: 14px 18px;
-      margin-bottom: 20px;
-    }
-
-    .key-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      color: #99c5ff;
-    }
-
-    .copy-btn {
-      background: rgba(0, 108, 253, 0.15);
-      border: 1px solid rgba(0, 108, 253, 0.35);
-      color: var(--accent);
-      padding: 8px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .copy-btn:hover {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    /* Grid for details */
-    .details-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-    }
-
-    .detail-item {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-      padding: 14px;
-    }
-
-    .detail-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    .detail-value {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    /* Download Banner */
-    .download-card {
-      background: linear-gradient(135deg, rgba(0, 108, 253, 0.16) 0%, rgba(13, 17, 26, 0.95) 100%);
-      border: 1px solid rgba(0, 108, 253, 0.35);
-      text-align: center;
-      padding: 38px 24px;
-    }
-
-    .download-card h2 {
-      font-size: 24px;
-      font-weight: 800;
-      margin-bottom: 8px;
-    }
-
-    .download-card p {
-      color: var(--text-muted);
-      font-size: 14px;
+      background: #0d121c;
+      border: 1px solid #161e2e;
+      border-radius: 18px;
+      padding: 26px 32px;
       margin-bottom: 24px;
-      max-width: 520px;
-      margin-left: auto;
-      margin-right: auto;
     }
-
-    .btn-download {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: linear-gradient(135deg, var(--accent), #0048c2);
-      color: #ffffff;
-      padding: 16px 36px;
+    .hero-download-left { display: flex; align-items: center; gap: 18px; }
+    .hero-download-icon {
+      width: 48px;
+      height: 48px;
       border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      text-decoration: none;
-      box-shadow: 0 8px 30px var(--accent-glow);
-      transition: all 0.25s ease;
-      cursor: pointer;
-      border: none;
-    }
-
-    .btn-download:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 35px rgba(0, 108, 253, 0.55);
-    }
-
-    .badge-preactivated {
-      display: inline-block;
-      margin-top: 14px;
-      font-size: 12px;
-      color: #99c5ff;
-      background: rgba(0, 108, 253, 0.12);
-      padding: 4px 12px;
-      border-radius: 20px;
-      border: 1px solid rgba(0, 108, 253, 0.25);
-    }
-
-    /* Steps */
-    .steps-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-top: 14px;
-    }
-
-    .step-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      padding: 18px;
-    }
-
-    .step-num {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: rgba(0, 108, 253, 0.2);
-      color: var(--accent);
-      font-weight: 700;
-      font-size: 13px;
+      background: #141a27;
+      border: 1px solid #1f2a3f;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 12px;
+      font-size: 22px;
     }
+    .hero-download-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .hero-download-meta { font-size: 12.5px; color: var(--text-muted); display: flex; gap: 12px; align-items: center; }
+    .badge-jar { background: #1a2335; padding: 2px 8px; border-radius: 4px; font-size: 11px; color: #a5b7d0; font-family: 'JetBrains Mono', monospace; }
 
-    .step-title {
-      font-weight: 600;
+    .btn-download-main {
+      background: var(--accent-pill);
+      color: var(--accent-pill-text);
+      padding: 12px 28px;
+      border-radius: 12px;
       font-size: 14px;
-      margin-bottom: 6px;
-    }
-
-    .step-desc {
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    /* Login Box */
-    .login-box {
-      max-width: 440px;
-      margin: 80px auto 0;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      cursor: pointer;
+      display: inline-block;
       text-align: center;
     }
+    .btn-download-main:hover { background: #a6c5e8; }
 
-    .input-field {
+    /* 3-Step Quick Start */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 700px) { .steps-grid { grid-template-columns: 1fr; } }
+    .step-box {
+      background: #0a0e16;
+      border: 1px solid #141b27;
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .step-icon { font-size: 20px; margin-bottom: 12px; color: var(--text-muted); }
+    .step-header { font-size: 14.5px; font-weight: 700; margin-bottom: 6px; }
+    .step-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+    /* Compatible Launchers Grid */
+    .launchers-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 700px) { .launchers-grid { grid-template-columns: repeat(2, 1fr); } }
+    .launcher-box {
+      background: #0a0e16;
+      border: 1px solid #141b27;
+      border-radius: 14px;
+      padding: 22px 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .launcher-name { font-size: 13.5px; font-weight: 700; }
+    .launcher-tag { font-size: 11px; color: var(--text-muted); }
+
+    /* System Requirements */
+    .req-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      padding: 10px 0;
+    }
+    @media (max-width: 700px) { .req-grid { grid-template-columns: 1fr 1fr; } }
+    .req-col-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+    .req-col-val { font-size: 13.5px; font-weight: 600; color: #dbe4f0; }
+
+    /* Form Fields */
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+    .form-control {
       width: 100%;
-      background: rgba(8, 12, 20, 0.9);
-      border: 1px solid rgba(0, 108, 253, 0.3);
+      background: #080b11;
+      border: 1px solid #171f2e;
       border-radius: 10px;
-      padding: 14px 16px;
+      padding: 12px 16px;
       color: #fff;
-      font-size: 15px;
-      margin-bottom: 16px;
+      font-size: 13.5px;
       outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus { border-color: #2b3b55; }
+    textarea.form-control { resize: vertical; min-height: 120px; font-family: inherit; }
+
+    .textarea-wrapper { position: relative; }
+    .char-count { position: absolute; bottom: 10px; right: 14px; font-size: 11.5px; color: var(--text-dim); }
+
+    /* Drag drop box */
+    .upload-box {
+      border: 2px dashed #1e283b;
+      background: #080b12;
+      border-radius: 14px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
       transition: all 0.2s;
     }
+    .upload-box:hover { border-color: #3b4e70; background: #0c101a; }
+    .upload-box input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .upload-icon { font-size: 32px; margin-bottom: 10px; color: var(--text-muted); }
+    .upload-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .upload-subtitle { font-size: 12px; color: var(--text-dim); }
+    .preview-thumb { max-width: 100%; max-height: 220px; border-radius: 8px; margin-top: 14px; display: none; }
 
-    .input-field:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 15px var(--accent-glow);
+    /* Bottom Action Bar */
+    .form-action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
     }
+    .toggle-anon-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #141b29;
+      border: 1px solid #202b3f;
+      color: var(--text-muted);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .toggle-anon-btn.active {
+      background: var(--accent-pill);
+      color: var(--accent-pill-text);
+      border-color: var(--accent-pill);
+    }
+    .btn-submit-action {
+      background: #192336;
+      color: #fff;
+      border: 1px solid #283752;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-submit-action:hover { background: #223049; border-color: #384d73; }
 
+    /* Updates Timeline */
+    .update-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+    .update-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; }
+    .update-ver { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+    .update-date { font-size: 13px; color: var(--text-muted); }
+    .update-section-title { font-size: 12px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin: 14px 0 8px; }
+    .update-list { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+    .dot-green { color: var(--green); margin-right: 6px; }
+    .dot-orange { color: #f59e0b; margin-right: 6px; }
+    .dot-blue { color: #60a5fa; margin-right: 6px; }
+
+    /* Footer */
     .footer {
-      text-align: center;
-      margin-top: 40px;
-      font-size: 12px;
-      color: #555566;
+      border-top: 1px solid #111724;
+      padding: 48px 50px 32px;
+      max-width: 1300px;
+      width: 100%;
+      margin: auto auto 0;
     }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 2fr; gap: 32px; margin-bottom: 40px; }
+    @media (max-width: 768px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+    .footer-col h4 { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 16px; }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+    .footer-links a:hover { color: #fff; }
+    .payment-icons { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+    .pay-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px; background: #151c2a; border: 1px solid #232f45; color: #a5b4c7; }
+    .footer-bottom { border-top: 1px solid #111724; padding-top: 24px; display: flex; justify-content: space-between; color: #4b586d; font-size: 12px; }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <div class="header">
-      <div class="brand">
-        <img src="/static/icon.png" class="brand-logo-img" alt="FinxClient Logo">
-        <div class="brand-text">
-          <h1>FinxClient</h1>
-          <p>Official Authentication Portal</p>
-        </div>
+  <!-- TOP NAVBAR -->
+  <nav class="navbar">
+    <a href="/" class="nav-brand">
+      <img src="/static/icon.png" class="nav-brand-img" alt="Finx Logo">
+      <span class="nav-brand-name">Finx Client</span>
+    </a>
+
+    <div class="nav-links">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/modules" class="nav-link">Modules</a>
+      <a href="/pricing" class="nav-link">Pricing</a>
+      <a href="/dashboard?tab=reviews" class="nav-link">Reviews</a>
+    </div>
+
+    <div class="nav-right">
+      <span>&#127760; EN &#9662;</span>
+      <a href="/dashboard" class="btn-dash-pill">Dashboard</a>
+    </div>
+  </nav>
+
+  <!-- MAIN PORTAL -->
+  <div class="portal-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Client</div>
+        <button class="nav-item active" onclick="switchTab('downloads')">
+          <span class="nav-icon">&#128229;</span> Downloads
+        </button>
+        <button class="nav-item" onclick="switchTab('updates')">
+          <span class="nav-icon">&#128260;</span> Updates
+        </button>
+        <button class="nav-item" onclick="switchTab('redeem')">
+          <span class="nav-icon">&#128273;</span> Redeem Key
+        </button>
       </div>
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <a href="/basefinds" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0, 168, 252, 0.12); border: 1px solid rgba(0, 168, 252, 0.3); color: #00A8FC; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; text-decoration: none; transition: all 0.2s;">
-          🗺️ Post Base Find
-        </a>
-        <!-- If logged in -->
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Community</div>
+        <button class="nav-item" onclick="switchTab('reviews')">
+          <span class="nav-icon">&#128172;</span> Reviews
+        </button>
+        <button class="nav-item" onclick="switchTab('basefinds')">
+          <span class="nav-icon">&#129517;</span> BaseFinds
+        </button>
+        <button class="nav-item" onclick="switchTab('suggestions')">
+          <span class="nav-icon">&#128161;</span> Suggestions
+        </button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Tools</div>
+        <button class="nav-item" onclick="switchTab('utilities')">
+          <span class="nav-icon">&#128295;</span> Utilities
+        </button>
+      </div>
+
+      <!-- Devices Info -->
+      <div class="device-slot-box">
+        <span>&#128187; Devices 1/1</span>
         {% if license %}
-        <div class="status-badge">
-          <span class="status-dot"></span>
-          <span>Authorized</span>
-        </div>
+        <a href="/api/resethwid?key={{ license.key }}" class="btn-add-slot">+ Reset HWID</a>
+        {% else %}
+        <span style="color: var(--text-dim); font-size:11px;">Unactivated</span>
         {% endif %}
       </div>
-    </div>
 
-    {% if not license %}
-    <!-- LOGIN FORM -->
-    <div class="card login-box">
-      <img src="/static/icon.png" style="width: 54px; height: 54px; margin: 0 auto 16px; display: block;" alt="Logo">
-      <h2 style="font-size: 22px; margin-bottom: 8px;">Member Access</h2>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Enter your License Key or Discord ID to access your client build.</p>
-      
-      {% if error %}
-      <div style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; padding: 10px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;">
-        {{ error }}
-      </div>
-      {% endif %}
-
-      <form method="GET" action="/dashboard">
-        <input type="text" name="key" class="input-field" placeholder="FINX-XXXX-XXXX-XXXX or Discord ID" required autofocus>
-        <button type="submit" class="btn-download" style="width: 100%; justify-content: center;">Enter Dashboard</button>
-      </form>
-      <p style="margin-top: 18px; font-size: 13px; color: var(--text-muted);">
-        Don't have a key? Contact an administrator on Discord.
-      </p>
-      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);">
-        <a href="/basefinds" style="color: #00A8FC; text-decoration: none; font-size: 13px; font-weight: 600;">
-          🗺️ Want to share a Base Find screenshot? Click here →
-        </a>
-      </div>
-    </div>
-
-    {% else %}
-    <!-- DASHBOARD VIEW -->
-    
-    <!-- DOWNLOAD HERO CARD -->
-    <div class="card download-card">
-      <h2>Your Client Is Ready</h2>
-      <p>Click below to download <strong>FinxClient-1.6.2.jar</strong> with your personal license key already embedded inside. No manual file creation needed!</p>
-      
-      <a href="/api/download?key={{ license.key }}" class="btn-download">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-        Download Pre-Activated Client (.jar)
-      </a>
-      
-      <div>
-        <span class="badge-preactivated">✨ Auto-Activated &bull; Just Drag & Drop into mods/</span>
-      </div>
-    </div>
-
-    <!-- LICENSE OVERVIEW CARD -->
-    <div class="card">
-      <div class="card-title">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-        Your License Information
-      </div>
-
-      <div class="key-box">
-        <div class="key-text" id="licenseKey">{{ license.key }}</div>
-        <button class="copy-btn" onclick="copyKey()">Copy Key</button>
-      </div>
-
-      <div class="details-grid">
-        <div class="detail-item">
-          <div class="detail-label">Subscription Duration</div>
-          <div class="detail-value" style="color: #60a5fa;">{{ expiry_text }}</div>
+      <!-- Bottom User Profile Card -->
+      <div class="profile-card">
+        <div class="profile-user-info">
+          <img src="/static/icon.png" class="profile-avatar" alt="Avatar">
+          <div class="profile-names">
+            {% if license %}
+            <span class="profile-username">{{ license.discord_tag or license.discord_id or 'Finx Member' }}</span>
+            <span class="profile-badge">Finx+ &bull; {% if license.expires_at %}Monthly{% else %}Lifetime{% endif %}</span>
+            {% else %}
+            <span class="profile-username">Guest User</span>
+            <span class="profile-badge" style="color: #f59e0b;">No Key Redeemed</span>
+            {% endif %}
+          </div>
         </div>
+        {% if license %}
+        <a href="/dashboard" class="profile-logout" title="Switch Key">&#8618;</a>
+        {% else %}
+        <a href="javascript:switchTab('redeem')" class="profile-logout" title="Redeem Key" style="color:#60a5fa;">&#128273;</a>
+        {% endif %}
+      </div>
+    </aside>
 
-        <div class="detail-item">
-          <div class="detail-label">Hardware Lock (HWID)</div>
-          <div class="detail-value">
-            <span id="hwidStatus">
-              {% if license.hwid %}
-                <span style="color: #4ade80;">Linked ({{ license.hwid[:10] }}...)</span>
-              {% else %}
-                <span style="color: #fbbf24;">Not Linked Yet (Binds on first launch)</span>
-              {% endif %}
-            </span>
-            <span style="font-size: 11px; color: var(--text-muted); display: block; margin-top: 4px;">
-              Locked to your device &bull; Contact the owner on Discord for HWID resets
-            </span>
+    <!-- RIGHT MAIN CONTENT -->
+    <main class="main-panel">
+
+      <!-- ============================================== -->
+      <!-- TAB 1: DOWNLOADS (LOCKED UNLESS KEY REDEEMED) -->
+      <!-- ============================================== -->
+      <div id="tab-downloads" class="tab-content active">
+
+        {% if not license %}
+        <!-- LOCKED VIEW: MUST REDEEM KEY FIRST -->
+        <div class="card" style="text-align: center; padding: 48px 30px; border-color: rgba(245, 158, 11, 0.25);">
+          <div style="font-size: 42px; margin-bottom: 14px;">&#128274;</div>
+          <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 8px;">License Key Required</h2>
+          <p style="color: var(--text-muted); font-size: 14px; max-width: 500px; margin: 0 auto 24px; line-height: 1.6;">
+            You must redeem a valid <strong>Finx Client</strong> license key before you can download the client build.
+          </p>
+          <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+            <button onclick="switchTab('redeem')" class="btn-download-main">
+              &#128273; Redeem License Key
+            </button>
+            <a href="/pricing" class="btn-download-main" style="background: #141b29; color: #fff; border: 1px solid #202b3f;">
+              View Pricing &amp; Plans
+            </a>
+          </div>
+        </div>
+        {% else %}
+        <!-- UNLOCKED VIEW: DOWNLOAD READY -->
+        <div class="hero-download-card">
+          <div class="hero-download-left">
+            <div class="hero-download-icon">&#128229;</div>
+            <div>
+              <div class="hero-download-name">Finx+ - Latest</div>
+              <div class="hero-download-meta">
+                <span>Latest version <span class="badge-jar">.jar</span></span>
+                <span>Last updated Jun 25, 2026</span>
+              </div>
+            </div>
+          </div>
+          <a href="/api/download?key={{ license.key }}" class="btn-download-main">Download</a>
+        </div>
+        {% endif %}
+
+        <!-- Quick Start 3-step -->
+        <div class="card">
+          <div class="card-title">Quick Start</div>
+          <div class="steps-grid">
+            <div class="step-box">
+              <div class="step-icon">&#128229;</div>
+              <div class="step-header">Download</div>
+              <div class="step-desc">Grab the latest .jar above with your key auto-embedded.</div>
+            </div>
+            <div class="step-box">
+              <div class="step-icon">&#128193;</div>
+              <div class="step-header">Install</div>
+              <div class="step-desc">Drop it in your 1.21.11 mods folder.</div>
+            </div>
+            <div class="step-box">
+              <div class="step-icon">&#127918;</div>
+              <div class="step-header">Play</div>
+              <div class="step-desc">Launch Fabric and press Right Shift in-game.</div>
+            </div>
           </div>
         </div>
 
-        <div class="detail-item">
-          <div class="detail-label">Discord Account</div>
-          <div class="detail-value">{{ license.discord_tag or license.discord_id }}</div>
+        <!-- Compatible Launchers -->
+        <div class="card">
+          <div class="card-title">Compatible Launchers</div>
+          <div class="launchers-grid">
+            <div class="launcher-box">
+              <div style="font-size: 28px;">&#129704;</div>
+              <div class="launcher-name">Minecraft</div>
+              <div class="launcher-tag">Official</div>
+            </div>
+            <div class="launcher-box">
+              <div style="font-size: 28px; color: #10b981;">&#128994;</div>
+              <div class="launcher-name">Modrinth</div>
+              <div class="launcher-tag">Compatible</div>
+            </div>
+            <div class="launcher-box">
+              <div style="font-size: 28px; color: #f59e0b;">&#128225;</div>
+              <div class="launcher-name">Dawn</div>
+              <div class="launcher-tag">Compatible</div>
+            </div>
+            <div class="launcher-box">
+              <div style="font-size: 28px;">&#129516;</div>
+              <div class="launcher-name">Prism</div>
+              <div class="launcher-tag">Compatible</div>
+            </div>
+          </div>
         </div>
 
-        <div class="detail-item">
-          <div class="detail-label">Registered On</div>
-          <div class="detail-value">{{ license.created_at[:10] }}</div>
+        <!-- System Requirements -->
+        <div class="card">
+          <div class="card-title">System Requirements</div>
+          <div class="req-grid">
+            <div>
+              <div class="req-col-label">Version</div>
+              <div class="req-col-val">1.21.11</div>
+            </div>
+            <div>
+              <div class="req-col-label">Mod Loader</div>
+              <div class="req-col-val">Fabric</div>
+            </div>
+            <div>
+              <div class="req-col-label">Required</div>
+              <div class="req-col-val">Fabric API</div>
+            </div>
+            <div>
+              <div class="req-col-label">Platforms</div>
+              <div class="req-col-val">Windows, macOS, Linux</div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- QUICK INSTALL INSTRUCTIONS -->
-    <div class="card">
-      <div class="card-title">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        3-Step Installation Guide
+      <!-- ============================================== -->
+      <!-- TAB 2: UPDATES / CHANGELOG -->
+      <!-- ============================================== -->
+      <div id="tab-updates" class="tab-content">
+        <!-- v5.3 -->
+        <div class="update-card">
+          <div class="update-header">
+            <span class="update-ver">v5.3</span>
+            <span class="update-date">Jun 25, 2026</span>
+          </div>
+
+          <div class="update-section-title">Added</div>
+          <ul class="update-list">
+            <li><span class="dot-green">&bull;</span> BlockNotifier</li>
+            <li><span class="dot-green">&bull;</span> NameProtect</li>
+            <li><span class="dot-green">&bull;</span> FakePlayer</li>
+          </ul>
+
+          <div class="update-section-title">Improved</div>
+          <ul class="update-list">
+            <li><span class="dot-blue">&bull;</span> PlayerESP</li>
+            <li><span class="dot-blue">&bull;</span> Configs</li>
+            <li><span class="dot-blue">&bull;</span> SusChunkFinder</li>
+            <li><span class="dot-blue">&bull;</span> NameTags</li>
+          </ul>
+
+          <div class="update-section-title">Changed</div>
+          <ul class="update-list">
+            <li><span class="dot-orange">&bull;</span> SpotifyHUD &rarr; MusicHUD</li>
+          </ul>
+
+          <div class="update-section-title">Fixed</div>
+          <ul class="update-list">
+            <li><span class="dot-blue">&bull;</span> AntiTrap</li>
+            <li><span class="dot-blue">&bull;</span> Auto Sell</li>
+            <li><span class="dot-blue">&bull;</span> Auto Spawner Sell</li>
+            <li><span class="dot-blue">&bull;</span> Fake Pay</li>
+            <li><span class="dot-blue">&bull;</span> Fake Stats</li>
+            <li><span class="dot-blue">&bull;</span> Item Dropper</li>
+          </ul>
+        </div>
+
+        <!-- v5.2 -->
+        <div class="update-card">
+          <div class="update-header">
+            <span class="update-ver">v5.2</span>
+            <span class="update-date">Apr 23, 2026</span>
+          </div>
+
+          <div class="update-section-title">Added</div>
+          <ul class="update-list">
+            <li><span class="dot-green">&bull;</span> 3D Skin Support on SkinProtect</li>
+            <li><span class="dot-green">&bull;</span> Continue Walking Option for Freecam</li>
+          </ul>
+        </div>
       </div>
 
-      <div class="steps-list">
-        <div class="step-card">
-          <div class="step-num">1</div>
-          <div class="step-title">Download Client</div>
-          <div class="step-desc">Click the blue download button above to get your custom pre-activated <code>FinxClient-1.6.2.jar</code>.</div>
-        </div>
+      <!-- ============================================== -->
+      <!-- TAB 3: REDEEM KEY -->
+      <!-- ============================================== -->
+      <div id="tab-redeem" class="tab-content">
+        <div class="card">
+          <div class="card-title">&#128273; Redeem License Key</div>
+          <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 22px;">
+            Enter your license key or Discord ID below to activate access and unlock client downloads.
+          </p>
 
-        <div class="step-card">
-          <div class="step-num">2</div>
-          <div class="step-title">Move to Mods Folder</div>
-          <div class="step-desc">Drop the downloaded <code>.jar</code> file into your <code>.minecraft/mods</code> directory.</div>
-        </div>
+          <form method="GET" action="/dashboard" style="max-width: 480px;">
+            <div class="form-group">
+              <label>License Key or Discord ID</label>
+              <input type="text" class="form-control" name="key" style="font-family: monospace; font-size: 15px; letter-spacing: 0.5px;" placeholder="FINX-XXXX-XXXX-XXXX" value="{{ license.key if license else '' }}" required autofocus>
+            </div>
+            <button type="submit" class="btn-download-main">
+              Activate &amp; Unlock Download
+            </button>
+          </form>
 
-        <div class="step-card">
-          <div class="step-num">3</div>
-          <div class="step-title">Launch & Play</div>
-          <div class="step-desc">Launch Minecraft Fabric 1.21.1. The client connects to the auth server and binds your PC automatically!</div>
+          {% if license %}
+          <div style="margin-top: 24px; padding: 16px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px;">
+            <div style="font-size: 13.5px; font-weight: 700; color: var(--green); margin-bottom: 4px;">&#10003; Active License Linked</div>
+            <div style="font-size: 12.5px; color: var(--text-muted);">
+              Key: <code style="color: #fff;">{{ license.key }}</code> &bull; Expiration: {{ expiry_text or 'Lifetime' }}
+            </div>
+          </div>
+          {% endif %}
         </div>
       </div>
-    </div>
 
-    <!-- BASE FINDS SECTION -->
-    <div class="card" style="margin-top: 24px; text-align: center; border-color: rgba(0, 168, 252, 0.35);">
-      <div style="font-size: 32px; margin-bottom: 8px;">🗺️</div>
-      <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px;">Found a Stash or Base?</h3>
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; max-width: 480px; margin-left: auto; margin-right: auto;">
-        Share your base finds and stash discoveries directly to the Discord <strong>#base-finds</strong> channel.
-      </p>
-      <a href="/basefinds" class="btn-download" style="background: linear-gradient(135deg, #00A8FC, #006cfd); text-decoration: none; padding: 12px 28px; font-size: 14px;">
-        📸 Post Screenshot to #base-finds
-      </a>
-    </div>
-    {% endif %}
+      <!-- ============================================== -->
+      <!-- TAB 4: REVIEWS -->
+      <!-- ============================================== -->
+      <div id="tab-reviews" class="tab-content">
+        <div class="warning-banner">
+          <span>&#9888;&#65039;</span>
+          <div>
+            <strong>Warning:</strong> Reviews are monitored. ANY rule violation = instant license revocation AND permanent ban. No warnings. Banned: selling anything (Finx, configs, accounts, licenses), fakes, advertising, self-promo, "DM me for..." messages, off-topic posts.
+          </div>
+        </div>
 
-    <div class="footer">
-      FinxClient &copy; 2026 &bull; Protected with FinxAuth &bull; <a href="/dashboard" style="color: #60a5fa;">Switch Account</a>
-    </div>
+        <div class="card">
+          <div class="card-title">
+            <span>&#128172;</span> Share Your Experience
+          </div>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Submit a review and let us know what you think about Finx Client.</p>
+
+          <form id="review-form">
+            <div class="form-group">
+              <label>Title (optional)</label>
+              <input type="text" class="form-control" name="title" placeholder="Give your review a title...">
+            </div>
+
+            <div class="form-group">
+              <label>Your Review *</label>
+              <div class="textarea-wrapper">
+                <textarea class="form-control" name="review" id="review-text" maxlength="2000" placeholder="Write your honest review about Finx Client..." required></textarea>
+                <div class="char-count" id="review-char-count">0/2000</div>
+              </div>
+            </div>
+
+            <div class="form-action-bar">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 13px; font-weight: 600;">{{ license.discord_tag or license.discord_id or 'Fynn093' }}</span>
+                <button type="button" class="toggle-anon-btn" id="btn-anon" onclick="toggleAnon()">
+                  <span>&#128065;&#65039;</span> Anonymous
+                </button>
+              </div>
+              <button type="submit" class="btn-submit-action">Submit Review</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 5: BASEFINDS -->
+      <!-- ============================================== -->
+      <div id="tab-basefinds" class="tab-content">
+        <div class="warning-banner">
+          <span>&#9888;&#65039;</span>
+          <div>
+            <strong>Warning:</strong> All submissions are reviewed. ANY rule violation = instant license revocation AND permanent ban. No warnings. Banned: selling anything (Finx, configs, accounts, licenses), fakes, advertising, self-promo, "DM me for configs" posts, anything that isn't a real find.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>&#129517;</span> Share Your Base Find
+          </div>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Found a base? Upload a screenshot and share the details directly to Discord #base-finds.</p>
+
+          <div id="basefind-alert" style="display:none; padding:12px; border-radius:8px; margin-bottom:16px; font-size:13px;"></div>
+
+          <form id="basefind-portal-form">
+            <div class="form-group">
+              <label>Screenshot *</label>
+              <div class="upload-box" id="portal-drop-zone">
+                <input type="file" name="screenshot" id="portal-screenshot" accept="image/*" required>
+                <div id="portal-prompt">
+                  <div class="upload-icon">&#128444;&#65039;</div>
+                  <div class="upload-title">Click to upload or drag and drop</div>
+                  <div class="upload-subtitle">PNG, JPEG, GIF or WEBP (max 20MB)</div>
+                </div>
+                <img id="portal-preview" class="preview-thumb" alt="Preview">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Description *</label>
+              <div class="textarea-wrapper">
+                <textarea class="form-control" name="description" id="basefind-desc" maxlength="2000" placeholder="Describe the base find - coordinates, what you found, etc..." required></textarea>
+                <div class="char-count" id="basefind-char-count">0/2000</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Server (Optional)</label>
+              <input type="text" class="form-control" name="server" placeholder="e.g. 2b2t / DonutSMP">
+            </div>
+
+            <div class="form-action-bar">
+              <button type="submit" class="btn-download-main" id="btn-portal-submit" style="width:100%;">
+                &#128640; Post to Discord #base-finds
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 6: SUGGESTIONS -->
+      <!-- ============================================== -->
+      <div id="tab-suggestions" class="tab-content">
+        <div class="card">
+          <div class="card-title">&#128161; Feature Suggestions</div>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Have an idea or bypass concept? Let the development team know.</p>
+
+          <div class="form-group">
+            <label>Module / Feature Idea</label>
+            <input type="text" class="form-control" placeholder="e.g. Auto Totem bypass for strict servers">
+          </div>
+          <div class="form-group">
+            <label>Details</label>
+            <textarea class="form-control" placeholder="Describe how it should work..."></textarea>
+          </div>
+          <button type="button" class="btn-download-main" onclick="alert('Thank you! Suggestion submitted.')">Send Suggestion</button>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- TAB 7: UTILITIES (NO FAQ) -->
+      <!-- ============================================== -->
+      <div id="tab-utilities" class="tab-content">
+        <div class="card">
+          <div class="card-title">Quick Links</div>
+          <div class="steps-grid">
+            <a href="https://discord.gg/" target="_blank" class="step-box" style="text-decoration:none; color:inherit;">
+              <div class="step-icon" style="color:#5865F2;">&#128172;</div>
+              <div class="step-header">Discord Support &#8599;</div>
+              <div class="step-desc">Open a support ticket with staff.</div>
+            </a>
+            <a href="https://fabricmc.net/use/" target="_blank" class="step-box" style="text-decoration:none; color:inherit;">
+              <div class="step-icon" style="color:#10b981;">&#128229;</div>
+              <div class="step-header">Fabric API &#8599;</div>
+              <div class="step-desc">Required mod library download.</div>
+            </a>
+            <a href="https://fabricmc.net/use/installer/" target="_blank" class="step-box" style="text-decoration:none; color:inherit;">
+              <div class="step-icon" style="color:#93b5d8;">&#128295;</div>
+              <div class="step-header">Fabric Installer &#8599;</div>
+              <div class="step-desc">Install 1.21.11 Fabric loader.</div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
 
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <ul class="footer-links">
+          <li><a href="/">Home</a></li>
+          <li><a href="/modules">Modules</a></li>
+          <li><a href="/dashboard">Dashboard</a></li>
+          <li><a href="/pricing">Pricing</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Socials</h4>
+        <ul class="footer-links">
+          <li><a href="https://discord.gg/" target="_blank">Discord Server</a></li>
+          <li><a href="https://tiktok.com/" target="_blank">TikTok</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Payment Methods</h4>
+        <div class="payment-icons">
+          <span class="pay-badge">VISA</span>
+          <span class="pay-badge">MC</span>
+          <span class="pay-badge">&#8383; BTC</span>
+          <span class="pay-badge">Stripe</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Finx Client &copy; 2026 &bull; All rights reserved.</span>
+    </div>
+  </footer>
+
   <script>
-    function copyKey() {
-      const key = document.getElementById('licenseKey').innerText;
-      navigator.clipboard.writeText(key).then(() => {
-        const btn = document.querySelector('.copy-btn');
-        btn.innerText = 'Copied!';
-        btn.style.background = '#10b981';
-        btn.style.color = '#fff';
-        setTimeout(() => {
-          btn.innerText = 'Copy Key';
-          btn.style.background = '';
-          btn.style.color = '';
-        }, 2000);
+    // Tab switching
+    function switchTab(name) {
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.nav-item')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(name));
+      if (activeBtn) activeBtn.classList.add('active');
+      const target = document.getElementById('tab-' + name);
+      if (target) target.classList.add('active');
+      const keyParam = new URLSearchParams(window.location.search).get('key');
+      history.replaceState(null, '', '?tab=' + name + (keyParam ? '&key=' + encodeURIComponent(keyParam) : ''));
+    }
+
+    // Auto-open tab from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialTab = urlParams.get('tab');
+    if (initialTab && document.getElementById('tab-' + initialTab)) {
+      switchTab(initialTab);
+    }
+
+    // Character counter
+    const reviewInput = document.getElementById('review-text');
+    const reviewCounter = document.getElementById('review-char-count');
+    if (reviewInput && reviewCounter) {
+      reviewInput.addEventListener('input', () => {
+        reviewCounter.innerText = reviewInput.value.length + '/2000';
+      });
+    }
+
+    const basefindDesc = document.getElementById('basefind-desc');
+    const basefindCounter = document.getElementById('basefind-char-count');
+    if (basefindDesc && basefindCounter) {
+      basefindDesc.addEventListener('input', () => {
+        basefindCounter.innerText = basefindDesc.value.length + '/2000';
+      });
+    }
+
+    // Anonymous toggle
+    let isAnonymous = false;
+    function toggleAnon() {
+      isAnonymous = !isAnonymous;
+      const btn = document.getElementById('btn-anon');
+      if (isAnonymous) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    }
+
+    // Review submit
+    const reviewForm = document.getElementById('review-form');
+    if (reviewForm) {
+      reviewForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Thank you! Your review has been submitted.');
+        reviewForm.reset();
+        if (reviewCounter) reviewCounter.innerText = '0/2000';
+      });
+    }
+
+    // Basefind Upload
+    const pInput = document.getElementById('portal-screenshot');
+    const pPreview = document.getElementById('portal-preview');
+    const pPrompt = document.getElementById('portal-prompt');
+    const pForm = document.getElementById('basefind-portal-form');
+    const pAlert = document.getElementById('basefind-alert');
+    const pBtn = document.getElementById('btn-portal-submit');
+
+    if (pInput && pPreview && pPrompt) {
+      pInput.addEventListener('change', () => {
+        const file = pInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            pPreview.src = e.target.result;
+            pPreview.style.display = 'block';
+            pPrompt.style.display = 'none';
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    if (pForm) {
+      pForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        pBtn.disabled = true;
+        pBtn.innerText = 'Posting to Discord...';
+        pAlert.style.display = 'none';
+
+        const fd = new FormData(pForm);
+        try {
+          const res = await fetch('/api/basefinds', { method: 'POST', body: fd });
+          const data = await res.json();
+          if (data.success) {
+            pAlert.style.background = 'rgba(16, 185, 129, 0.15)';
+            pAlert.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+            pAlert.style.color = '#10b981';
+            pAlert.innerText = '✅ ' + data.message;
+            pAlert.style.display = 'block';
+            pForm.reset();
+            pPreview.style.display = 'none';
+            pPrompt.style.display = 'block';
+          } else {
+            pAlert.style.background = 'rgba(239, 68, 68, 0.15)';
+            pAlert.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+            pAlert.style.color = '#ef4444';
+            pAlert.innerText = '❌ ' + (data.message || 'Upload failed');
+            pAlert.style.display = 'block';
+          }
+        } catch (err) {
+          pAlert.style.background = 'rgba(239, 68, 68, 0.15)';
+          pAlert.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+          pAlert.style.color = '#ef4444';
+          pAlert.innerText = '❌ Error: ' + err.message;
+          pAlert.style.display = 'block';
+        } finally {
+          pBtn.disabled = false;
+          pBtn.innerText = '🚀 Post to Discord #base-finds';
+        }
       });
     }
   </script>
