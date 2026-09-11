@@ -222,7 +222,7 @@ async def handle_verify(request):
     except Exception:
         return web.json_response({"success": False, "message": "Invalid JSON body."}, status=400)
 
-    key = data.get("key", "").strip()
+    key = data.get("key", "").replace("\ufeff", "").strip()
     hwid = data.get("hwid", "").strip()
 
     if not key or not hwid:
@@ -251,7 +251,7 @@ async def handle_heartbeat(request):
     except Exception:
         return web.json_response({"success": False, "message": "Invalid JSON"}, status=400)
 
-    key = data.get("key", "").strip()
+    key = data.get("key", "").replace("\ufeff", "").strip()
     hwid = data.get("hwid", "").strip()
     ign = data.get("ign", "").strip()
     server = data.get("server", "").strip()
