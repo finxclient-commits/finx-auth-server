@@ -200,21 +200,10 @@ async def handle_download(request):
         return web.json_response({"success": False, "message": f"Error packaging JAR: {e}"}, status=500)
 
 async def handle_api_resethwid(request):
-    key = request.query.get("key", "").strip()
-    if not key and request.can_read_body:
-        try:
-            data = await request.json()
-            key = data.get("key", "").strip()
-        except Exception:
-            pass
-
-    if not key:
-        return web.json_response({"success": False, "message": "Missing key."}, status=400)
-
-    success = db.reset_hwid_by_key(key)
-    if success:
-        return web.json_response({"success": True, "message": "HWID reset successfully."})
-    return web.json_response({"success": False, "message": "License key not found."}, status=404)
+    return web.json_response({
+        "success": False,
+        "message": "Public HWID resets are disabled. Only the server owner/administrator can reset HWIDs in Discord."
+    }, status=403)
 
 async def handle_verify(request):
     try:
@@ -440,25 +429,53 @@ async def cmd_mykey(interaction: discord.Interaction):
     embed.add_field(name="Created", value=str(lic["created_at"])[:10], inline=True)
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
-# --- USER COMMAND: /resethwid ---
-@bot.tree.command(name="resethwid", description="Reset your bound Hardware ID (e.g. after changing PC or parts).")
-async def cmd_resethwid(interaction: discord.Interaction):
-    user_id = str(interaction.user.id)
-    success = db.reset_hwid_by_discord_id(user_id)
+# --- ADMIN COMMAND: /resethwid ---
+@bot.tree.command(name="resethwid", description="[Owner/Admin Only] Reset the bound Hardware ID for a member.")
+@app_commands.describe(
+    user="Discord member whose HWID to reset",
+    key="Optional: exact license key to reset (if not specifying user)"
+)
+async def cmd_resethwid(
+    interaction: discord.Interaction,
+    user: discord.User = None,
+    key: str = None
+):
+    if not is_admin(interaction.user):
+        await interaction.response.send_message("❌ Only the server owner/administrators have permission to reset HWIDs.", ephemeral=True)
+        return
+
+    if not user and not key:
+        await interaction.response.send_message("❌ Please specify either a `@user` or a `key` to reset.", ephemeral=True)
+        return
+
+    success = False
+    target_desc = ""
+
+    if user:
+        lic = db.get_by_discord_id(user.id)
+        if not lic:
+            await interaction.response.send_message(f"❌ User {user.mention} does not have an active license.", ephemeral=True)
+            return
+        success = db.reset_hwid_by_discord_id(user.id)
+        target_desc = f"{user.mention} (`{lic['key']}`)"
+    elif key:
+        lic = db.get_by_key(key)
+        if not lic:
+            await interaction.response.send_message(f"❌ License key `{key}` not found.", ephemeral=True)
+            return
+        success = db.reset_hwid_by_key(key)
+        target_desc = f"key `{key}`"
 
     if success:
         embed = discord.Embed(
-            title="HWID Reset Successful",
+            title="✅ HWID Reset Complete",
             color=0x55FF55,
-            description="✅ Your bound HWID has been cleared. The next PC you launch FinxClient from will automatically bind to your key."
+            description=f"Hardware ID for {target_desc} has been cleared.\nThe user can now launch FinxClient from a new PC to bind it."
         )
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        logger.info(f"Admin {interaction.user} reset HWID for {target_desc}")
     else:
-        embed = discord.Embed(
-            title="No Active License",
-            color=0xFF5555,
-            description="❌ You do not have an active FinxClient key to reset."
-        )
-    await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(f"❌ Failed to reset HWID for {target_desc}.", ephemeral=True)
 
 # --- ADMIN COMMAND: /revokekey ---
 @bot.tree.command(name="revokekey", description="[Admin] Revoke a license key.")
