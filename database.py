@@ -1,4 +1,4 @@
-﻿import secrets
+import secrets
 import datetime
 import os
 import logging
@@ -82,6 +82,27 @@ class LicenseDB:
                         pass
                     try:
                         cur.execute("ALTER TABLE licenses ADD COLUMN duration_type TEXT DEFAULT 'lifetime'")
+                    except Exception:
+                        pass
+                    try:
+                        cur.execute("ALTER TABLE licenses ADD COLUMN last_seen TEXT")
+                    except Exception:
+                        pass
+                    try:
+                        cur.execute("ALTER TABLE licenses ADD COLUMN last_ign TEXT")
+                    except Exception:
+                        pass
+                    try:
+                        cur.execute("ALTER TABLE licenses ADD COLUMN last_server TEXT")
+                    except Exception:
+                        pass
+                else:
+                    try:
+                        cur.execute("""
+                            ALTER TABLE licenses ADD COLUMN IF NOT EXISTS last_seen TEXT;
+                            ALTER TABLE licenses ADD COLUMN IF NOT EXISTS last_ign TEXT;
+                            ALTER TABLE licenses ADD COLUMN IF NOT EXISTS last_server TEXT;
+                        """)
                     except Exception:
                         pass
                 conn.commit()
@@ -280,3 +301,96 @@ class LicenseDB:
             return True, "Authenticated successfully."
 
         return False, "HWID mismatch! If you changed PC or components, use /resethwid in Discord."
+
+    def record_heartbeat(self, key, hwid, ign, server):
+        if not key:
+            return False, "Missing key"
+        lic = self.get_by_key(key)
+        if not lic:
+            return False, "Invalid license key"
+        if not lic.get("active"):
+            return False, "License revoked"
+
+        # Check expiry
+        expires_at = lic.get("expires_at")
+        if expires_at:
+            try:
+                exp_dt = datetime.datetime.fromisoformat(expires_at)
+                if datetime.datetime.now(datetime.timezone.utc) > exp_dt:
+                    return False, "License expired"
+            except Exception:
+                pass
+
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        conn = self._get_conn()
+        ph = self._placeholder()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                f"UPDATE licenses SET last_seen = {ph}, last_ign = {ph}, last_server = {ph} WHERE key = {ph}",
+                (now, (ign or "Unknown").strip(), (server or "Main Menu").strip(), key.strip())
+            )
+            conn.commit()
+            return True, "Heartbeat recorded"
+        except Exception as e:
+            logger.error(f"DB Error record_heartbeat: {e}")
+            return False, str(e)
+        finally:
+            conn.close()
+
+    def get_admin_stats(self, online_threshold_seconds=60):
+        all_licenses = self.list_all()
+        now = datetime.datetime.now(datetime.timezone.utc)
+
+        total_players = len(all_licenses)
+        online_players = 0
+
+        instances = []
+        for lic in all_licenses:
+            last_seen = lic.get("last_seen")
+            is_online = False
+            last_seen_text = "Never"
+
+            if last_seen:
+                try:
+                    dt = datetime.datetime.fromisoformat(last_seen)
+                    diff = (now - dt).total_seconds()
+                    if diff <= online_threshold_seconds:
+                        is_online = True
+                        online_players += 1
+                        last_seen_text = "Online now"
+                    elif diff < 60:
+                        last_seen_text = f"{int(diff)}s ago"
+                    elif diff < 3600:
+                        last_seen_text = f"{int(diff // 60)}m ago"
+                    elif diff < 86400:
+                        last_seen_text = f"{int(diff // 3600)}h ago"
+                    else:
+                        last_seen_text = f"{int(diff // 86400)}d ago"
+                except Exception:
+                    last_seen_text = str(last_seen)[:16]
+
+            instances.append({
+                "key": lic.get("key"),
+                "discord_id": lic.get("discord_id"),
+                "discord_tag": lic.get("discord_tag") or lic.get("discord_id"),
+                "ign": lic.get("last_ign") or "None",
+                "server": lic.get("last_server") or "Offline",
+                "hwid": (lic.get("hwid")[:12] + "...") if lic.get("hwid") else "Not Linked",
+                "has_hwid": bool(lic.get("hwid")),
+                "expires_at": lic.get("expires_at"),
+                "duration_type": lic.get("duration_type", "lifetime"),
+                "active": bool(lic.get("active")),
+                "is_online": is_online,
+                "last_seen_text": last_seen_text,
+                "created_at": str(lic.get("created_at"))[:10]
+            })
+
+        # Sort: online players first, then active licenses, then key
+        instances.sort(key=lambda x: (not x["is_online"], not x["active"], x["key"]))
+
+        return {
+            "total_players": total_players,
+            "online_players": online_players,
+            "instances": instances
+        }

@@ -38,7 +38,8 @@ config = {
     "api_port": int(os.getenv("PORT", os.getenv("API_PORT", 3000))),
     "api_host": os.getenv("API_HOST", "0.0.0.0"),
     "database_path": os.getenv("DATABASE_PATH", "licenses.db"),
-    "dashboard_url": os.getenv("DASHBOARD_URL", "http://localhost:3000/dashboard")
+    "dashboard_url": os.getenv("DASHBOARD_URL", "http://localhost:3000/dashboard"),
+    "admin_password": os.getenv("ADMIN_PASSWORD", "finxadmin123")
 }
 
 if os.path.exists(CONFIG_PATH):
@@ -226,12 +227,113 @@ async def handle_verify(request):
         "message": message
     }, status=status_code)
 
+# --- HEARTBEAT & ADMIN MONITORING ---
+
+async def handle_heartbeat(request):
+    try:
+        data = await request.json()
+    except Exception:
+        return web.json_response({"success": False, "message": "Invalid JSON"}, status=400)
+
+    key = data.get("key", "").strip()
+    hwid = data.get("hwid", "").strip()
+    ign = data.get("ign", "").strip()
+    server = data.get("server", "").strip()
+
+    if not key:
+        return web.json_response({"success": False, "message": "Missing key"}, status=400)
+
+    success, msg = db.record_heartbeat(key, hwid, ign, server)
+    status_code = 200 if success else 403
+    return web.json_response({"success": success, "message": msg}, status=status_code)
+
+def is_admin_session(request):
+    admin_pw = os.getenv("ADMIN_PASSWORD", config.get("admin_password", "finxadmin123"))
+    cookie_token = request.cookies.get("finx_admin_token")
+    query_pw = request.query.get("password")
+    return (cookie_token == admin_pw) or (query_pw == admin_pw)
+
+async def handle_admin_get(request):
+    admin_pw = os.getenv("ADMIN_PASSWORD", config.get("admin_password", "finxadmin123"))
+    template = jinja_env.get_template("admin.html")
+
+    if not is_admin_session(request):
+        html = template.render(authenticated=False, error=None)
+        return web.Response(text=html, content_type="text/html")
+
+    stats = db.get_admin_stats(online_threshold_seconds=60)
+    html = template.render(authenticated=True, stats=stats, error=None)
+    resp = web.Response(text=html, content_type="text/html")
+    if request.query.get("password") == admin_pw:
+        resp.set_cookie("finx_admin_token", admin_pw, max_age=86400 * 7, httponly=True)
+    return resp
+
+async def handle_admin_post(request):
+    admin_pw = os.getenv("ADMIN_PASSWORD", config.get("admin_password", "finxadmin123"))
+    data = await request.post()
+    pw = data.get("password", "").strip()
+    template = jinja_env.get_template("admin.html")
+
+    if pw != admin_pw:
+        html = template.render(authenticated=False, error="Invalid password. Please try again.")
+        return web.Response(text=html, content_type="text/html")
+
+    stats = db.get_admin_stats(online_threshold_seconds=60)
+    html = template.render(authenticated=True, stats=stats, error=None)
+    resp = web.Response(text=html, content_type="text/html")
+    resp.set_cookie("finx_admin_token", admin_pw, max_age=86400 * 7, httponly=True)
+    return resp
+
+async def handle_admin_logout(request):
+    resp = web.HTTPFound(location="/admin")
+    resp.del_cookie("finx_admin_token")
+    return resp
+
+async def handle_admin_instances_json(request):
+    if not is_admin_session(request):
+        return web.json_response({"error": "Unauthorized"}, status=401)
+    stats = db.get_admin_stats(online_threshold_seconds=60)
+    return web.json_response(stats)
+
+async def handle_admin_resethwid(request):
+    if not is_admin_session(request):
+        return web.json_response({"error": "Unauthorized"}, status=401)
+    try:
+        data = await request.json()
+        key = data.get("key", "").strip()
+    except Exception:
+        return web.json_response({"success": False, "message": "Invalid request"}, status=400)
+    if not key:
+        return web.json_response({"success": False, "message": "Missing key"}, status=400)
+    success = db.reset_hwid_by_key(key)
+    return web.json_response({"success": success})
+
+async def handle_admin_revokekey(request):
+    if not is_admin_session(request):
+        return web.json_response({"error": "Unauthorized"}, status=401)
+    try:
+        data = await request.json()
+        key = data.get("key", "").strip()
+    except Exception:
+        return web.json_response({"success": False, "message": "Invalid request"}, status=400)
+    if not key:
+        return web.json_response({"success": False, "message": "Missing key"}, status=400)
+    success = db.revoke_key(key)
+    return web.json_response({"success": success})
+
 def create_api_app():
     app = web.Application()
     app.router.add_get("/", handle_dashboard)
     app.router.add_get("/dashboard", handle_dashboard)
+    app.router.add_get("/admin", handle_admin_get)
+    app.router.add_post("/admin", handle_admin_post)
+    app.router.add_get("/admin/logout", handle_admin_logout)
     app.router.add_get("/api/status", handle_status)
     app.router.add_get("/api/download", handle_download)
+    app.router.add_get("/api/admin/instances", handle_admin_instances_json)
+    app.router.add_post("/api/admin/resethwid", handle_admin_resethwid)
+    app.router.add_post("/api/admin/revokekey", handle_admin_revokekey)
+    app.router.add_post("/api/heartbeat", handle_heartbeat)
     app.router.add_post("/api/resethwid", handle_api_resethwid)
     app.router.add_post("/api/verify", handle_verify)
     return app
