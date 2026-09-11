@@ -342,10 +342,118 @@ async def handle_admin_revokekey(request):
     success = db.revoke_key(key)
     return web.json_response({"success": success})
 
+def get_basefinds_channel():
+    ch_id = config.get("basefinds_channel_id") or os.getenv("BASEFINDS_CHANNEL_ID")
+    if ch_id:
+        try:
+            ch = bot.get_channel(int(ch_id))
+            if ch:
+                return ch
+        except Exception:
+            pass
+
+    for guild in getattr(bot, "guilds", []):
+        for ch in guild.text_channels:
+            if ch.name.lower() in ("base-finds", "basefinds", "base_finds", "base-findings", "finds"):
+                return ch
+    return None
+
+async def handle_basefinds_page(request):
+    try:
+        template = jinja_env.get_template("basefinds.html")
+        html = template.render()
+        return web.Response(text=html, content_type="text/html")
+    except Exception as e:
+        logger.error(f"Error rendering basefinds.html: {e}")
+        return web.Response(text=f"Template error: {e}", status=500)
+
+async def handle_post_basefind(request):
+    try:
+        reader = await request.multipart()
+    except Exception:
+        return web.json_response({"success": False, "message": "Expected multipart form data"}, status=400)
+
+    title = "New Base Find"
+    description = ""
+    author = "Anonymous"
+    server_name = ""
+    coords = ""
+    image_bytes = None
+    filename = "basefind.png"
+
+    while True:
+        part = await reader.next()
+        if part is None:
+            break
+        if part.name == "title":
+            title = (await part.text()).strip() or title
+        elif part.name == "description":
+            description = (await part.text()).strip()
+        elif part.name == "author":
+            author = (await part.text()).strip() or author
+        elif part.name == "server":
+            server_name = (await part.text()).strip()
+        elif part.name == "coords":
+            coords = (await part.text()).strip()
+        elif part.name == "screenshot":
+            filename = part.filename or "basefind.png"
+            image_bytes = await part.read(decode=False)
+
+    if not image_bytes:
+        return web.json_response({"success": False, "message": "Please upload a screenshot image."}, status=400)
+
+    if len(image_bytes) > 20 * 1024 * 1024:
+        return web.json_response({"success": False, "message": "File too large (maximum 20MB)."}, status=400)
+
+    if not bot.is_ready():
+        return web.json_response({
+            "success": False,
+            "message": "Discord bot is currently connecting, please try again in a few moments."
+        }, status=503)
+
+    ch = get_basefinds_channel()
+    if not ch:
+        return web.json_response({
+            "success": False,
+            "message": "Discord channel #base-finds was not found. Please create a channel named 'base-finds' in your Discord server!"
+        }, status=404)
+
+    try:
+        clean_ext = os.path.splitext(filename)[1].lower()
+        if clean_ext not in (".png", ".jpg", ".jpeg", ".webp", ".gif"):
+            filename = "basefind.png"
+
+        file = discord.File(io.BytesIO(image_bytes), filename=filename)
+        embed = discord.Embed(
+            title=f"\U0001f5fa\ufe0f Base Find: {title}",
+            description=description or None,
+            color=0x00A8FC
+        )
+        embed.set_image(url=f"attachment://{filename}")
+
+        if server_name:
+            embed.add_field(name="Server", value=f"`{server_name}`", inline=True)
+        if coords:
+            embed.add_field(name="Coordinates / Area", value=f"`{coords}`", inline=True)
+
+        embed.set_footer(text=f"Uploaded by {author} \u2022 FinxClient Base Finder")
+        embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
+
+        await ch.send(embed=embed, file=file)
+        return web.json_response({
+            "success": True,
+            "message": f"Successfully posted screenshot to #{ch.name} on Discord!"
+        })
+    except Exception as e:
+        logger.exception("Failed to post basefind to Discord")
+        return web.json_response({"success": False, "message": f"Discord error: {str(e)}"}, status=500)
+
 def create_api_app():
     app = web.Application()
     app.router.add_get("/", handle_dashboard)
     app.router.add_get("/dashboard", handle_dashboard)
+    app.router.add_get("/basefinds", handle_basefinds_page)
+    app.router.add_post("/api/basefinds", handle_post_basefind)
     app.router.add_get("/admin", handle_admin_get)
     app.router.add_post("/admin", handle_admin_post)
     app.router.add_get("/admin/logout", handle_admin_logout)

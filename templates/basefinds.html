@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinxClient - Submit Base Find</title>
+  <link rel="icon" type="image/png" href="/static/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080a0f;
+      --card-bg: rgba(13, 17, 26, 0.85);
+      --card-border: rgba(0, 108, 253, 0.25);
+      --accent: #00A8FC;
+      --accent-glow: rgba(0, 168, 252, 0.4);
+      --accent-hover: #33baff;
+      --text: #f0f3f8;
+      --text-muted: #8a94a6;
+      --success: #10b981;
+      --danger: #ef4444;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 20% 15%, rgba(0, 168, 252, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(0, 108, 253, 0.12) 0%, transparent 50%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      font-size: 28px;
+      background: rgba(0, 168, 252, 0.12);
+      border: 1px solid rgba(0, 168, 252, 0.3);
+      border-radius: 12px;
+      padding: 6px 12px;
+    }
+
+    .brand-text h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-text p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 32px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(8, 12, 20, 0.9);
+      border: 1px solid rgba(0, 168, 252, 0.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 560px) {
+      .row { grid-template-columns: 1fr; }
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed rgba(0, 168, 252, 0.35);
+      border-radius: 12px;
+      padding: 30px 20px;
+      text-align: center;
+      background: rgba(0, 168, 252, 0.03);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(0, 168, 252, 0.08);
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .preview-img {
+      max-width: 100%;
+      max-height: 260px;
+      border-radius: 8px;
+      margin-top: 14px;
+      display: none;
+      border: 1px solid rgba(0, 168, 252, 0.3);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-submit {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--accent), #006cfd);
+      color: #ffffff;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 25px var(--accent-glow);
+      transition: all 0.2s;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 168, 252, 0.55);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .alert {
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--success);
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--danger);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      margin-top: 24px;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <div class="brand-icon">🗺️</div>
+        <div class="brand-text">
+          <h1>FinxClient Base Finder</h1>
+          <p>Post screenshot directly to Discord #base-finds</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="alert-box" class="alert"></div>
+
+      <form id="basefind-form">
+        <div class="form-group">
+          <label>Base Screenshot *</label>
+          <div class="drop-zone" id="drop-zone">
+            <input type="file" id="screenshot-input" name="screenshot" accept="image/*" required>
+            <div id="drop-prompt">
+              <p style="font-size: 28px; margin-bottom: 8px;">📸</p>
+              <p style="font-size: 14px; font-weight: 600;">Click to upload or drag & drop</p>
+              <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">PNG, JPG, WEBP, GIF up to 20MB</p>
+            </div>
+            <img id="preview-img" class="preview-img" alt="Preview">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Title / Description</label>
+          <input type="text" class="form-control" name="title" placeholder="e.g. Huge Dupe Stash / Nether Underground Base" required>
+        </div>
+
+        <div class="row">
+          <div class="form-group">
+            <label>Server (Optional)</label>
+            <input type="text" class="form-control" name="server" placeholder="e.g. 2b2t / DonutSMP">
+          </div>
+          <div class="form-group">
+            <label>Coordinates / Details (Optional)</label>
+            <input type="text" class="form-control" name="coords" placeholder="e.g. X: 45000 Z: -120000">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Your Name / Tag (Optional)</label>
+          <input type="text" class="form-control" name="author" placeholder="e.g. Dexter or Anonymous">
+        </div>
+
+        <button type="submit" class="btn-submit" id="btn-submit">
+          🚀 Post to Discord #base-finds
+        </button>
+      </form>
+    </div>
+
+    <a href="/dashboard" class="back-link">← Return to Dashboard</a>
+  </div>
+
+  <script>
+    const input = document.getElementById('screenshot-input');
+    const preview = document.getElementById('preview-img');
+    const prompt = document.getElementById('drop-prompt');
+    const dropZone = document.getElementById('drop-zone');
+    const form = document.getElementById('basefind-form');
+    const alertBox = document.getElementById('alert-box');
+    const btn = document.getElementById('btn-submit');
+
+    input.addEventListener('change', () => {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+          prompt.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach(name => {
+      dropZone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(name => {
+      dropZone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+      });
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      btn.innerText = 'Uploading to Discord...';
+      alertBox.style.display = 'none';
+
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch('/api/basefinds', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alertBox.className = 'alert alert-success';
+          alertBox.innerText = '✅ ' + data.message;
+          alertBox.style.display = 'block';
+          form.reset();
+          preview.style.display = 'none';
+          prompt.style.display = 'block';
+        } else {
+          alertBox.className = 'alert alert-error';
+          alertBox.innerText = '❌ ' + (data.message || 'Failed to post screenshot');
+          alertBox.style.display = 'block';
+        }
+      } catch (err) {
+        alertBox.className = 'alert alert-error';
+        alertBox.innerText = '❌ Network error: ' + err.message;
+        alertBox.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '🚀 Post to Discord #base-finds';
+      }
+    });
+  </script>
+</body>
+</html>

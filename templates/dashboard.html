@@ -331,13 +331,18 @@
           <p>Official Authentication Portal</p>
         </div>
       </div>
-      <!-- If logged in -->
-      {% if license %}
-      <div class="status-badge">
-        <span class="status-dot"></span>
-        <span>Authorized</span>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="/basefinds" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0, 168, 252, 0.12); border: 1px solid rgba(0, 168, 252, 0.3); color: #00A8FC; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; text-decoration: none; transition: all 0.2s;">
+          🗺️ Post Base Find
+        </a>
+        <!-- If logged in -->
+        {% if license %}
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          <span>Authorized</span>
+        </div>
+        {% endif %}
       </div>
-      {% endif %}
     </div>
 
     {% if not license %}
@@ -360,6 +365,11 @@
       <p style="margin-top: 18px; font-size: 13px; color: var(--text-muted);">
         Don't have a key? Contact an administrator on Discord.
       </p>
+      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);">
+        <a href="/basefinds" style="color: #00A8FC; text-decoration: none; font-size: 13px; font-weight: 600;">
+          🗺️ Want to share a Base Find screenshot? Click here →
+        </a>
+      </div>
     </div>
 
     {% else %}
@@ -452,6 +462,18 @@
           <div class="step-desc">Launch Minecraft Fabric 1.21.1. The client connects to the auth server and binds your PC automatically!</div>
         </div>
       </div>
+    </div>
+
+    <!-- BASE FINDS SECTION -->
+    <div class="card" style="margin-top: 24px; text-align: center; border-color: rgba(0, 168, 252, 0.35);">
+      <div style="font-size: 32px; margin-bottom: 8px;">🗺️</div>
+      <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px;">Found a Stash or Base?</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; max-width: 480px; margin-left: auto; margin-right: auto;">
+        Share your base finds and stash discoveries directly to the Discord <strong>#base-finds</strong> channel.
+      </p>
+      <a href="/basefinds" class="btn-download" style="background: linear-gradient(135deg, #00A8FC, #006cfd); text-decoration: none; padding: 12px 28px; font-size: 14px;">
+        📸 Post Screenshot to #base-finds
+      </a>
     </div>
     {% endif %}
 
