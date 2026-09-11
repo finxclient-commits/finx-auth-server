@@ -432,20 +432,10 @@
         </button>
       </div>
 
-      <!-- Devices Info -->
-      <div class="device-slot-box">
-        <span>&#128187; Devices 1/1</span>
-        {% if license %}
-        <a href="/api/resethwid?key={{ license.key }}" class="btn-add-slot">+ Reset HWID</a>
-        {% else %}
-        <span style="color: var(--text-dim); font-size:11px;">Unactivated</span>
-        {% endif %}
-      </div>
-
       <!-- Bottom User Profile Card -->
       <div class="profile-card">
         <div class="profile-user-info">
-          <img src="/static/icon.png" class="profile-avatar" alt="Avatar">
+          <img src="{{ avatar_url or '/static/icon.png' }}" id="sidebar-avatar" class="profile-avatar" alt="Avatar" onerror="this.onerror=null; this.src='/static/icon.png';">
           <div class="profile-names">
             {% if license %}
             <span class="profile-username">{{ license.discord_tag or license.discord_id or 'Finx Member' }}</span>
@@ -940,6 +930,21 @@
         }
       });
     }
+
+    {% if license and license.discord_id %}
+    // Async check for Discord avatar if default icon was rendered
+    (function() {
+      const avatarImg = document.getElementById('sidebar-avatar');
+      if (avatarImg && (!avatarImg.src || avatarImg.src.endsWith('/static/icon.png'))) {
+        fetch('/api/avatar?id={{ license.discord_id }}')
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.avatar_url) avatarImg.src = data.avatar_url;
+          })
+          .catch(() => {});
+      }
+    })();
+    {% endif %}
   </script>
 </body>
 </html>

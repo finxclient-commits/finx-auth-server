@@ -149,13 +149,53 @@ async def handle_status(request):
         }
     })
 
+_avatar_cache = {}  # {str(discord_id): (url, expire_timestamp)}
+
+async def get_discord_avatar_url(discord_id_val):
+    if not discord_id_val:
+        return "/static/icon.png"
+    d_str = str(discord_id_val).strip()
+    if not d_str:
+        return "/static/icon.png"
+
+    now = time.time()
+    if d_str in _avatar_cache:
+        url, exp = _avatar_cache[d_str]
+        if now < exp:
+            return url
+
+    # Default Discord embed avatar fallback based on user id modulo 6
+    fallback_url = "/static/icon.png"
+    try:
+        numeric_id = int(d_str)
+        default_index = (numeric_id >> 22) % 6
+        fallback_url = f"https://cdn.discordapp.com/embed/avatars/{default_index}.png"
+    except Exception:
+        pass
+
+    avatar_url = None
+    if bot.is_ready():
+        try:
+            numeric_id = int(d_str)
+            user = bot.get_user(numeric_id)
+            if not user:
+                user = await bot.fetch_user(numeric_id)
+            if user and user.display_avatar:
+                avatar_url = str(user.display_avatar.url)
+        except Exception as e:
+            logger.debug(f"Could not fetch avatar for {d_str}: {e}")
+
+    final_url = avatar_url or fallback_url
+    _avatar_cache[d_str] = (final_url, now + 900)  # Cache for 15 minutes
+    return final_url
+
 async def handle_dashboard(request):
     key_query = request.query.get("key", "").strip()
     template = jinja_env.get_template("dashboard.html")
 
     if not key_query:
         # Render clean login form
-        html = template.render(license=None, error=None)
+        html = template.render(license=None, avatar_url="/static/icon.png", error=None)
         return web.Response(text=html, content_type="text/html")
 
     # Look up by key or by Discord ID
@@ -164,16 +204,27 @@ async def handle_dashboard(request):
         lic = db.get_by_discord_id(key_query)
 
     if not lic:
-        html = template.render(license=None, error="No active license found for that Key or Discord ID.")
+        html = template.render(license=None, avatar_url="/static/icon.png", error="No active license found for that Key or Discord ID.")
         return web.Response(text=html, content_type="text/html")
 
     if not lic.get("active"):
-        html = template.render(license=None, error="This license key has been revoked.")
+        html = template.render(license=None, avatar_url="/static/icon.png", error="This license key has been revoked.")
         return web.Response(text=html, content_type="text/html")
 
     expiry_text = format_expiry(lic.get("expires_at"))
-    html = template.render(license=lic, expiry_text=expiry_text, error=None)
+    avatar_url = await get_discord_avatar_url(lic.get("discord_id"))
+    html = template.render(license=lic, expiry_text=expiry_text, avatar_url=avatar_url, error=None)
     return web.Response(text=html, content_type="text/html")
+
+async def handle_api_avatar(request):
+    discord_id = request.query.get("id", "").strip()
+    key = request.query.get("key", "").strip()
+    if not discord_id and key:
+        lic = db.get_by_key(key)
+        if lic:
+            discord_id = lic.get("discord_id", "")
+    avatar_url = await get_discord_avatar_url(discord_id)
+    return web.json_response({"avatar_url": avatar_url})
 
 async def handle_download(request):
     key = request.query.get("key", "").strip()
@@ -479,6 +530,7 @@ def create_api_app():
     app.router.add_get("/admin/logout", handle_admin_logout)
     app.router.add_get("/api/status", handle_status)
     app.router.add_get("/api/download", handle_download)
+    app.router.add_get("/api/avatar", handle_api_avatar)
     app.router.add_get("/api/admin/instances", handle_admin_instances_json)
     app.router.add_post("/api/admin/resethwid", handle_admin_resethwid)
     app.router.add_post("/api/admin/revokekey", handle_admin_revokekey)
@@ -512,6 +564,8 @@ bot = FinxAuthBot()
 @bot.tree.command(name="dashboard", description="Get your personal 1-click link to the FinxClient download portal.")
 async def cmd_dashboard(interaction: discord.Interaction):
     user_id = str(interaction.user.id)
+    if interaction.user and interaction.user.display_avatar:
+        _avatar_cache[user_id] = (str(interaction.user.display_avatar.url), time.time() + 3600)
     lic = db.get_by_discord_id(user_id)
 
     if not lic:
@@ -586,6 +640,8 @@ async def cmd_assignkey(
         days = duration.value
 
     key, is_new, expires_at, duration_type = db.assign_key(user.id, str(user), days=days, notes=notes)
+    if user and user.display_avatar:
+        _avatar_cache[str(user.id)] = (str(user.display_avatar.url), time.time() + 3600)
     duration_text = format_expiry(expires_at)
     
     base_url = config.get("dashboard_url", "http://localhost:3000/dashboard").rstrip("/")
