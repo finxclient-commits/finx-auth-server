@@ -1,4 +1,4 @@
-﻿# Secrets and local config
+# Secrets and local config
 .env
 config.json
 
@@ -13,6 +13,7 @@ __pycache__/
 
 # Build artifacts
 *.jar
+!client/FinxClient-1.6.2.jar
 
 # OS
 .DS_Store
