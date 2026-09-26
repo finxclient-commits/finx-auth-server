@@ -56,12 +56,49 @@ if os.path.exists(CONFIG_PATH):
 
 db = LicenseDB(config.get("database_path", "licenses.db"))
 jinja_env = Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
-
+import secrets
 AUTH_SECRET = os.getenv("AUTH_HMAC_SECRET", "Finx_Sec_Auth_Token_2026_x89f_HmacKey").encode("utf-8")
+
+# Hardened security caches: anti-replay nonces and sliding rate limiters
+_seen_nonces = {}           # {nonce: expire_timestamp}
+_ip_rate_limits = {}        # {ip: [timestamps]}
+_key_failed_attempts = {}   # {key: [timestamps]}
+
+def _clean_security_caches():
+    now = time.time()
+    # Expire old nonces (older than 180s)
+    expired_nonces = [n for n, exp in _seen_nonces.items() if now > exp]
+    for n in expired_nonces:
+        _seen_nonces.pop(n, None)
+
+    # Expire old IP logs
+    for ip, times in list(_ip_rate_limits.items()):
+        valid_times = [t for t in times if now - t < 60]
+        if valid_times:
+            _ip_rate_limits[ip] = valid_times
+        else:
+            _ip_rate_limits.pop(ip, None)
+
+    # Expire failed key logs older than 300s
+    for k, times in list(_key_failed_attempts.items()):
+        valid_times = [t for t in times if now - t < 300]
+        if valid_times:
+            _key_failed_attempts[k] = valid_times
+        else:
+            _key_failed_attempts.pop(k, None)
 
 def generate_auth_token(key: str, hwid: str, ts: int) -> str:
     payload = f"FINX:{key.strip()}:{hwid.strip()}:{ts}"
     return hmac.new(AUTH_SECRET, payload.encode("utf-8"), hashlib.sha256).hexdigest()
+
+def generate_hardened_auth_token(key: str, hwid: str, c_nonce: str, s_nonce: str, ts: int) -> str:
+    payload = f"FINX:{key.strip()}:{hwid.strip()}:{c_nonce.strip()}:{s_nonce.strip()}:{ts}"
+    return hmac.new(AUTH_SECRET, payload.encode("utf-8"), hashlib.sha256).hexdigest()
+
+def verify_client_signature(key: str, hwid: str, c_nonce: str, c_ts: int, sig: str) -> bool:
+    payload = f"REQ:{key.strip()}:{hwid.strip()}:{c_nonce.strip()}:{c_ts}"
+    expected = hmac.new(AUTH_SECRET, payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, sig.strip())
 
 def is_admin(member):
     if not isinstance(member, discord.Member):
@@ -139,7 +176,7 @@ async def handle_status(request):
     return web.json_response({
         "status": "online",
         "service": "FinxClient Auth Server & Portal",
-        "version": "1.2.0",
+        "version": "1.1.0",
         "discord": {
             "token_configured": bool(token_val and token_val != "PASTE_YOUR_DISCORD_BOT_TOKEN_HERE"),
             "token_length": len(token_val),
@@ -268,6 +305,20 @@ async def handle_api_resethwid(request):
     }, status=403)
 
 async def handle_verify(request):
+    _clean_security_caches()
+    client_ip = request.remote or "unknown"
+    now = time.time()
+
+    # 1. IP Rate Limiting (max 12 verify attempts / min)
+    ip_times = _ip_rate_limits.setdefault(client_ip, [])
+    ip_times.append(now)
+    if len(ip_times) > 12:
+        logger.warning(f"Rate limit exceeded for IP {client_ip}")
+        return web.json_response({
+            "success": False,
+            "message": "Too many requests. Please wait a minute."
+        }, status=429)
+
     try:
         data = await request.json()
     except Exception:
@@ -275,12 +326,41 @@ async def handle_verify(request):
 
     key = data.get("key", "").replace("\ufeff", "").strip()
     hwid = data.get("hwid", "").strip()
+    c_nonce = data.get("nonce", "").strip()
+    c_ts = data.get("ts", 0)
+    sig = data.get("sig", "").strip()
 
     if not key or not hwid:
         return web.json_response({"success": False, "message": "Missing key or hwid field."}, status=400)
 
+    # 2. Key brute-force lockout (if > 6 failed attempts in 5 minutes, lock key)
+    failed_times = _key_failed_attempts.get(key, [])
+    if len(failed_times) >= 6:
+        logger.warning(f"Key {key[:8]} is temporarily locked due to repeated failed auth attempts.")
+        return web.json_response({
+            "success": False,
+            "message": "Key temporarily locked due to repeated failed attempts. Try again in 5 minutes."
+        }, status=429)
+
+    # 3. Anti-Replay Nonce & Freshness Check (if client sent hardened challenge-response)
+    if c_nonce:
+        ts_sec = c_ts / 1000.0 if c_ts > 10_000_000_000 else c_ts
+        if c_ts and abs(now - ts_sec) > 90:
+            return web.json_response({"success": False, "message": "Handshake expired (clock skew detected)."}, status=400)
+        if c_nonce in _seen_nonces:
+            logger.warning(f"Replay attack detected for nonce {c_nonce[:8]}")
+            return web.json_response({"success": False, "message": "Replay attack detected."}, status=403)
+        _seen_nonces[c_nonce] = now + 180  # Cache for 3 minutes
+
+        if sig and not verify_client_signature(key, hwid, c_nonce, c_ts, sig):
+            logger.warning(f"Invalid client request signature for key {key[:8]}")
+            return web.json_response({"success": False, "message": "Invalid client cryptographic signature."}, status=401)
+
     success, message = db.verify(key, hwid)
     status_code = 200 if success else (403 if "mismatch" in message.lower() else 401)
+
+    if not success:
+        _key_failed_attempts.setdefault(key, []).append(now)
 
     logger.info(f"Auth attempt for key {key[:8]}... -> success={success} ({message})")
     resp_data = {
@@ -288,9 +368,17 @@ async def handle_verify(request):
         "message": message
     }
     if success:
-        ts = int(time.time())
+        # Clear failure history on valid auth
+        _key_failed_attempts.pop(key, None)
+        ts = int(now)
         resp_data["timestamp"] = ts
-        resp_data["token"] = generate_auth_token(key, hwid, ts)
+        if c_nonce:
+            s_nonce = secrets.token_hex(16)
+            resp_data["s_nonce"] = s_nonce
+            resp_data["token"] = generate_hardened_auth_token(key, hwid, c_nonce, s_nonce, ts)
+            resp_data["lease"] = 180
+        else:
+            resp_data["token"] = generate_auth_token(key, hwid, ts)
 
     return web.json_response(resp_data, status=status_code)
 
@@ -306,6 +394,7 @@ async def handle_heartbeat(request):
     hwid = data.get("hwid", "").strip()
     ign = data.get("ign", "").strip()
     server = data.get("server", "").strip()
+    c_nonce = data.get("nonce", "").strip()
 
     if not key:
         return web.json_response({"success": False, "message": "Missing key"}, status=400)
@@ -316,7 +405,12 @@ async def handle_heartbeat(request):
     if success and hwid:
         ts = int(time.time())
         resp_data["timestamp"] = ts
-        resp_data["token"] = generate_auth_token(key, hwid, ts)
+        if c_nonce:
+            s_nonce = secrets.token_hex(16)
+            resp_data["s_nonce"] = s_nonce
+            resp_data["token"] = generate_hardened_auth_token(key, hwid, c_nonce, s_nonce, ts)
+        else:
+            resp_data["token"] = generate_auth_token(key, hwid, ts)
     return web.json_response(resp_data, status=status_code)
 
 def is_admin_session(request):
